@@ -9,6 +9,7 @@ public class ApiGestionEdificioApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ApiGestionEdificioApplication.class, args);
 		
+		System.out.println();
 		System.out.println(" hello world");
 	}
 
