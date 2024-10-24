@@ -28,6 +28,12 @@ public class ReclamoDAO {
     public Optional<Reclamo> getById(int numero, IRepositoryReclamo iRepositoryReclamo){
         return iRepositoryReclamo.findById(numero);
     }
+    public List<Reclamo> getByEdificio(int codigo, IRepositoryReclamo iRepositoryReclamo){
+        return iRepositoryReclamo.findByEdificio(codigo);
+    }
+    public List<Reclamo> getByUnidad(int identificador, IRepositoryReclamo iRepositoryReclamo){
+        return iRepositoryReclamo.findByUnidad(identificador);
+    }
 
     public void save(Reclamo reclamo, IRepositoryReclamo iRepositoryReclamo){
         iRepositoryReclamo.save(reclamo);

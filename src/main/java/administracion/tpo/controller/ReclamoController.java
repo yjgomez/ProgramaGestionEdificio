@@ -10,10 +10,9 @@ import administracion.tpo.views.ReclamoView;
 import jakarta.persistence.Id;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/reclamos")
@@ -37,5 +36,18 @@ public class ReclamoController {
             ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
         }
         return ResponseEntity.ok(reclamo.toView());
+    }
+
+    // recibimos el id como parametro en la url, para edificio y para unidad.
+    @GetMapping("/edificio/{id}")
+    public ResponseEntity<List<ReclamoView>> getReclamosPorEdificio (@PathVariable("id") int idEdificio){
+        List<Reclamo> reclamos = ReclamoDAO.getInstance().getByEdificio(idEdificio,repositoryReclamo);
+        return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
+    }
+
+    @GetMapping("/unidad/{id}")
+    public ResponseEntity<List<ReclamoView>> getReclamosPorUnidad (@PathVariable("id") int idUnidad){
+        List<Reclamo> reclamos = ReclamoDAO.getInstance().getByUnidad(idUnidad, repositoryReclamo);
+        return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
     }
 }
