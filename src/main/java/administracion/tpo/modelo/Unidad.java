@@ -98,6 +98,7 @@ public class Unidad {
 		else
 			this.habitado = true;
 	}
+
 	
 	public int getId() {
 		return id;

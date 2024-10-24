@@ -3,6 +3,7 @@ package administracion.tpo.modelo;
 import java.util.ArrayList;
 import java.util.List;
 
+import administracion.tpo.views.ReclamoView;
 import jakarta.persistence.*;
 
 @Entity
@@ -64,6 +65,16 @@ public class Reclamo {
 		imagenes = new ArrayList<Imagen>();
 	}
 
+	// para cargar reclamos comunes del edificio, sin especificar unidad
+	public Reclamo(Persona usuario, Edificio edificio, String ubicacion, String descripcion,int idtiporeclamo) {
+		this.usuario = usuario;
+		this.edificio = edificio;
+		this.ubicacion = ubicacion;
+		this.descripcion = descripcion;
+		this.estado = Estado.nuevo;
+		this.idtiporeclamo=idtiporeclamo;
+		imagenes = new ArrayList<Imagen>();
+	}
 	public void agregarImagen(String direccion, String tipo) {
 		Imagen imagen = new Imagen(direccion, tipo);
 		imagenes.add(imagen);
@@ -134,6 +145,9 @@ public class Reclamo {
 	public void setIdtiporeclamo(int idtiporeclamo) {
 		this.idtiporeclamo = idtiporeclamo;
 	}
-	
+
+	public ReclamoView toView() {
+		return new ReclamoView(idreclamo, usuario.toView(), edificio.toView(), ubicacion, descripcion, unidad.toView(), estado, imagenes.stream().map(Imagen::toView).toList());
+	}
 	
 }

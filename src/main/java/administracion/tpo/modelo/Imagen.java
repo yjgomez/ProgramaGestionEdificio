@@ -1,5 +1,6 @@
 package administracion.tpo.modelo;
 
+import administracion.tpo.views.ImagenView;
 import jakarta.persistence.*;
 
 @Entity
@@ -47,6 +48,9 @@ public class Imagen {
 
 	public void save(int numeroReclamo) {
 		
+	}
+	public ImagenView toView() {
+		return new ImagenView(numero, direccion, tipo);
 	}
 
 	@Override

@@ -3,7 +3,16 @@ package administracion.tpo.controller;
 import java.util.List;
 import java.util.Optional;
 
+import administracion.tpo.dao.ReclamoDAO;
+import administracion.tpo.dao.UnidadDAO;
+import administracion.tpo.modelo.Reclamo;
+import administracion.tpo.modelo.Unidad;
+import administracion.tpo.repository.IRepositoryReclamo;
+import administracion.tpo.repository.IRepositoryUnidad;
+import administracion.tpo.views.EdificioView;
+import administracion.tpo.views.ReclamoView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,12 +26,16 @@ import administracion.tpo.modelo.Edificio;
 import administracion.tpo.repository.IRepositoryEdificio;
 
 @RestController
-@RequestMapping("api/edificios")
+@RequestMapping("api/")
 public class EdificioController {
 	//la ruta es http://localhost:8080/api/edificios
 	
 	@Autowired
 	 IRepositoryEdificio repositoryEdificio;
+	@Autowired
+	IRepositoryUnidad repositoryUnidad;
+	@Autowired
+	IRepositoryReclamo repositoryReclamo;
 	
 	@GetMapping
 	public List<Edificio> getAll() {
@@ -30,19 +43,33 @@ public class EdificioController {
 	}
 	
 	@GetMapping("/{id}")
-	public Edificio getById(@PathVariable("id") int id) {
+	public ResponseEntity<EdificioView> getById(@PathVariable("id") int id) {
 		//la rta es http://localhost:8080/api/edificios/2
 		Optional<Edificio> e =EdificioDAO.getInstance().getById(id, repositoryEdificio);
 		if(e.isPresent()) {
 			Edificio ed=e.get();
-			
-			return ed;
+			return ResponseEntity.ok(ed.toView());
 		}else {
-			System.out.println("no existe ese edificio");
-			return null;
+			throw new RuntimeException("No existe el edificio con id: "+id);
 		}
 	}
-	
+	@PostMapping
+	public ResponseEntity<ReclamoView> generarReclamo (@RequestBody Reclamo reclamo){
+		Integer idUnidad = reclamo.getUnidad().getId();
+		Unidad unidad = UnidadDAO.getInstance().getById(idUnidad, repositoryUnidad).get();
+		// checkeamos que si no esta alquilada, el del reclamo sea unicamente el dueño
+		if(!unidad.estaHabitado() && reclamo.getUsuario() != unidad.getDuenios()) {
+			throw new RuntimeException("La unidad no esta habitada, solamente el dueño puede hacer el reclamo");
+		}
+		else if (unidad.estaHabitado() && (reclamo.getUsuario() != unidad.getInquilinos() && reclamo.getUsuario() != unidad.getDuenios())) {
+			throw new RuntimeException("La unidad esta habitada, solamente el inquilino o el dueño puede hacer el reclamo");
+		} else {
+			// guardamos el reclamo
+			ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
+		}
+		return ResponseEntity.ok(reclamo.toView());
+	}
+
 	@DeleteMapping("/{id}")
 	public void deleteById(@PathVariable("id") int id) {
 		EdificioDAO.getInstance().delete(id,repositoryEdificio);
