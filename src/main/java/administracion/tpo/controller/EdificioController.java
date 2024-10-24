@@ -53,22 +53,7 @@ public class EdificioController {
 			throw new RuntimeException("No existe el edificio con id: "+id);
 		}
 	}
-	@PostMapping
-	public ResponseEntity<ReclamoView> generarReclamo (@RequestBody Reclamo reclamo){
-		Integer idUnidad = reclamo.getUnidad().getId();
-		Unidad unidad = UnidadDAO.getInstance().getById(idUnidad, repositoryUnidad).get();
-		// checkeamos que si no esta alquilada, el del reclamo sea unicamente el dueño
-		if(!unidad.estaHabitado() && reclamo.getUsuario() != unidad.getDuenios()) {
-			throw new RuntimeException("La unidad no esta habitada, solamente el dueño puede hacer el reclamo");
-		}
-		else if (unidad.estaHabitado() && (reclamo.getUsuario() != unidad.getInquilinos() && reclamo.getUsuario() != unidad.getDuenios())) {
-			throw new RuntimeException("La unidad esta habitada, solamente el inquilino o el dueño puede hacer el reclamo");
-		} else {
-			// guardamos el reclamo
-			ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
-		}
-		return ResponseEntity.ok(reclamo.toView());
-	}
+
 
 	@DeleteMapping("/{id}")
 	public void deleteById(@PathVariable("id") int id) {
