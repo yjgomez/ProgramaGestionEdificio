@@ -37,9 +37,8 @@ public class Reclamo {
 	
 	
 	@Column(name = "imagen")
-	@OneToMany
-	@JoinColumn(name = "imagen_numero")
-	private List<Imagen> imagenes;
+	@OneToMany(mappedBy = "reclamo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<Imagen> imagenes = new ArrayList<>();
 	
 	//fijarse si realmente sirve. Sino, sacarlo
 	private int idtiporeclamo;

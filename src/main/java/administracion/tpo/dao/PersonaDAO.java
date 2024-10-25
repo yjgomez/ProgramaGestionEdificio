@@ -41,6 +41,9 @@ public class PersonaDAO {
         	iRepositoryPersona.save(p);
         }
     }
+    public Optional<Persona> getByNombre (String nombre, IRepositoryPersona iRepositoryPersona){
+        return iRepositoryPersona.findByNombre(nombre);
+    }
 
 
 }
