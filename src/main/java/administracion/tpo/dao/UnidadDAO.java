@@ -43,6 +43,9 @@ public class UnidadDAO {
         	iRepositoryUnidad.save(unidad);
         }
     }
+    public List<Unidad> getByIdEdificio(int codigo, IRepositoryUnidad iRepositoryUnidad){
+        return iRepositoryUnidad.findByEdificio(codigo);
+    }
 
 
 }

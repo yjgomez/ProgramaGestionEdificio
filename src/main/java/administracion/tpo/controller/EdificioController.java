@@ -2,6 +2,7 @@ package administracion.tpo.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
@@ -11,6 +12,7 @@ import administracion.tpo.repository.IRepositoryReclamo;
 import administracion.tpo.repository.IRepositoryUnidad;
 import administracion.tpo.views.EdificioView;
 import administracion.tpo.views.ReclamoView;
+import administracion.tpo.views.UnidadView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,7 +28,7 @@ import administracion.tpo.modelo.Edificio;
 import administracion.tpo.repository.IRepositoryEdificio;
 
 @RestController
-@RequestMapping("api/")
+@RequestMapping("api/edificios")
 public class EdificioController {
 	//la ruta es http://localhost:8080/api/edificios
 	
@@ -56,19 +58,25 @@ public class EdificioController {
 
 
 	@DeleteMapping("/{id}")
-	public void deleteById(@PathVariable("id") int id) {
+	public ResponseEntity<String> deleteById(@PathVariable("id") int id) {
 		EdificioDAO.getInstance().delete(id,repositoryEdificio);
+		return ResponseEntity.ok("Edificio eliminado");
 	}
 	
 	@PostMapping
-	public void createProducto(@RequestBody Edificio edi) {
-		EdificioDAO.getInstance().save(edi, repositoryEdificio);
+	public void createProducto(@RequestBody EdificioView edi) {
+		EdificioDAO.getInstance().save(edi.toEntity(), repositoryEdificio);
 	}
-	
-	//metodo de prueba
-	@GetMapping("/saludo")  //http://localhost:8080/api/edificios/saludo
-	public String saludar() {
-		return "hola ";
+	@GetMapping("/{id}/unidades")
+	public ResponseEntity<List<UnidadView>> getUnidadesByEdificio (@PathVariable Integer id) {
+		Optional<Edificio> e = EdificioDAO.getInstance().getById(id, repositoryEdificio);
+		if(e.isPresent()) {
+			Edificio ed = e.get();
+			List<UnidadView> unidadesViews = UnidadDAO.getInstance().getByIdEdificio(ed.getCodigo(), repositoryUnidad).stream().map(Unidad::toView).toList();
+			return ResponseEntity.ok(unidadesViews);
+		}else {
+			throw new RuntimeException("No existe el edificio con id: "+id);
+		}
 	}
 	
 }

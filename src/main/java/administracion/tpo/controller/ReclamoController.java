@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/reclamos")
@@ -32,8 +33,8 @@ public class ReclamoController {
     @Autowired
     IRepositoryImagen repositoryImagen;
     private final String uploadDir = "uploads/";
-@PostMapping
-public ResponseEntity<ReclamoView> generarReclamo(@RequestBody Reclamo reclamo) {
+@PostMapping("/crear")
+public ResponseEntity<Integer> generarReclamo(@RequestBody Reclamo reclamo) {
     Unidad unidad = UnidadDAO.getInstance().getById(reclamo.getUnidad().getId(), repositoryUnidad).orElseThrow();
 
     if (!unidad.estaHabitado() && reclamo.getUsuario().equals(unidad.getDuenios())) {
@@ -43,7 +44,8 @@ public ResponseEntity<ReclamoView> generarReclamo(@RequestBody Reclamo reclamo) 
     } else {
         ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
     }
-    return ResponseEntity.ok(reclamo.toView());
+    // retorna el id del reclamo para su posterior consulta
+    return ResponseEntity.ok(reclamo.getNumero());
 }
 
     // recibimos el id como parametro en la url, para edificio y para unidad.
@@ -81,6 +83,20 @@ public ResponseEntity<ReclamoView> generarReclamo(@RequestBody Reclamo reclamo) 
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Error al subir la imagen: " + e.getMessage());
         }
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<ReclamoView> getReclamo(@PathVariable int id) {
+        Optional<Reclamo> reclamo = ReclamoDAO.getInstance().getById(id, repositoryReclamo);
+        if (reclamo.isPresent()) {
+            return ResponseEntity.ok(reclamo.get().toView());
+        } else {
+            return ResponseEntity.status(404).body(null);
+        }
+    }
+    @GetMapping("/all")
+    public ResponseEntity<List<ReclamoView>> getAllReclamos () {
+        List<Reclamo> reclamos = ReclamoDAO.getInstance().getAll(repositoryReclamo);
+        return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
     }
 
 }

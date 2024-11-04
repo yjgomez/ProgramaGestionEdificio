@@ -34,8 +34,11 @@ public class EdificioDAO {
     }
 
     public void delete(int codigo, IRepositoryEdificio iRepositoryEdificio){
-    	System.out.println(" here");
-        iRepositoryEdificio.deleteById(codigo);
+    	        if (iRepositoryEdificio.existsById(codigo)) {
+        	iRepositoryEdificio.deleteById(codigo);
+        } else {
+        	throw new RuntimeException("No existe el edificio con id: "+codigo);
+        }
     }
     
     public void update(Edificio ed,IRepositoryEdificio iRepositoryEdificio){

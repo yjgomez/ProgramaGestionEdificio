@@ -14,6 +14,9 @@ public class Imagen {
 	private String direccion;
 	@Column(name = "tipo")
 	private String tipo;
+	@ManyToOne
+	@JoinColumn(name = "idreclamo")
+	private Reclamo reclamo;
 
 
 	public Imagen(){}

@@ -22,7 +22,23 @@ public class Edificio {
 	private String nombre;
 	
 	private String direccion;
-	
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public void setDireccion(String direccion) {
+		this.direccion = direccion;
+	}
+
+	public void setUnidades(List<Unidad> unidades) {
+		this.unidades = unidades;
+	}
+
 	//@Column(name = "unidades")
 	/*
 	@OneToMany(fetch = FetchType.LAZY,mappedBy = "codigoedificio" ) //mappedBy = "edificio"

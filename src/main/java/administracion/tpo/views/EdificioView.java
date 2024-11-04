@@ -1,5 +1,7 @@
 package administracion.tpo.views;
 
+import administracion.tpo.modelo.Edificio;
+
 public class EdificioView {
 
 	private int codigo;
@@ -40,5 +42,11 @@ public class EdificioView {
 	
 	public String toString() {
 		return codigo + " " + nombre; 
+	}
+
+	public Edificio toEntity () {
+		Edificio edificio = new Edificio(this.getNombre(), this.getDireccion());
+		edificio.setCodigo(this.getCodigo());
+		return edificio;
 	}
 }

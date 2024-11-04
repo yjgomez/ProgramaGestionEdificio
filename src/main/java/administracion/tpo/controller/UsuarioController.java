@@ -17,14 +17,18 @@ public class UsuarioController {
 
     @PostMapping("/crear")
     public ResponseEntity<PersonaView> createUser(@RequestBody Persona persona) {
-
         PersonaDAO.getInstance().save(persona, repositoryPersona);
         return ResponseEntity.ok(persona.toView());
     }
 
-    @GetMapping("/{nombre}")
+    @GetMapping("/nombre/{nombre}")
     public ResponseEntity<PersonaView> getUser(@PathVariable String nombre) {
         Persona persona = PersonaDAO.getInstance().getByNombre(nombre, repositoryPersona).orElseThrow();
         return ResponseEntity.ok(persona.toView());
+    }
+    @GetMapping("/documento/{documento}")
+    public ResponseEntity<PersonaView> getUserByDocumento (@PathVariable String documento) {
+        Persona p = PersonaDAO.getInstance().getById(documento, repositoryPersona).orElseThrow();
+        return ResponseEntity.ok(p.toView());
     }
 }
