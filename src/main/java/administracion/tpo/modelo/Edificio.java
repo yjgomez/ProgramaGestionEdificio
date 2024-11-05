@@ -1,10 +1,12 @@
 package administracion.tpo.modelo;
 
 import administracion.tpo.views.EdificioView;
+import administracion.tpo.views.UnidadView;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -22,34 +24,19 @@ public class Edificio {
 	private String nombre;
 	
 	private String direccion;
-
-	public void setCodigo(int codigo) {
-		this.codigo = codigo;
-	}
-
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
-
-	public void setDireccion(String direccion) {
-		this.direccion = direccion;
-	}
-
-	public void setUnidades(List<Unidad> unidades) {
-		this.unidades = unidades;
-	}
-
+	
 	//@Column(name = "unidades")
 	/*
 	@OneToMany(fetch = FetchType.LAZY,mappedBy = "codigoedificio" ) //mappedBy = "edificio"
 	@JoinColumn(name = "identificador")
 	private List<Unidad> unidades=new ArrayList<Unidad>();
 	*/
-	@OneToMany(mappedBy = "edificio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "edificio", fetch = FetchType.EAGER)
     private List<Unidad> unidades=new ArrayList<Unidad>();
 
+	//----------------------------------------------------------
 	public Edificio(){
-
+		unidades = new ArrayList<Unidad>();
 	}
 	public Edificio( String nombre, String direccion) {
 		
@@ -57,7 +44,7 @@ public class Edificio {
 		this.direccion = direccion;
 		unidades = new ArrayList<Unidad>();
 	}
-	
+	//----------------------------------------------------------
 	public void agregarUnidad(Unidad unidad) {
 		unidades.add(unidad);
 	}
@@ -118,7 +105,18 @@ public class Edificio {
 		}
 		return resultado;
 	}
+	
+	
 
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+	public void setDireccion(String direccion) {
+		this.direccion = direccion;
+	}
 	@Override
 	public String toString() {
 		return "Edificio{" +
@@ -129,6 +127,14 @@ public class Edificio {
 	}
 
 	public EdificioView toView() {
-		return new EdificioView(codigo, nombre, direccion);
+		//List<UnidadView>unidadesview=this.getUnidadesView(); 
+		return new EdificioView(this);
+	}
+	public List<UnidadView> getUnidadesView() {
+		List<UnidadView> unidadesview=new ArrayList<UnidadView>();
+		for(Unidad u:unidades) {
+			unidadesview.add( new UnidadView(u) );  //?
+		}
+		return unidadesview;
 	}
 }

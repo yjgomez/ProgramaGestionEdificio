@@ -1,6 +1,5 @@
 package administracion.tpo.modelo;
 
-import administracion.tpo.views.ImagenView;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,21 +9,23 @@ public class Imagen {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private int numero;
+	
 	@Column(name = "path")
 	private String direccion;
+	
 	@Column(name = "tipo")
 	private String tipo;
-	@ManyToOne
-	@JoinColumn(name = "idreclamo")
-	private Reclamo reclamo;
+	//----------------------------------------------------------
 
+	public Imagen(){
+		
+	}
 
-	public Imagen(){}
 	public Imagen(String direccion, String tipo) {
 		this.direccion = direccion;
 		this.tipo = tipo;
 	}
-
+	//----------------------------------------------------------
 	public int getNumero() {
 		return numero;
 	}
@@ -51,9 +52,6 @@ public class Imagen {
 
 	public void save(int numeroReclamo) {
 		
-	}
-	public ImagenView toView() {
-		return new ImagenView(numero, direccion, tipo);
 	}
 
 	@Override

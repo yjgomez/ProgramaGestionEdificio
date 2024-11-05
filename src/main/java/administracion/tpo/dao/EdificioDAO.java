@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class EdificioDAO {
+	
     private static EdificioDAO instance;
 
     private EdificioDAO(){
@@ -34,15 +35,18 @@ public class EdificioDAO {
     }
 
     public void delete(int codigo, IRepositoryEdificio iRepositoryEdificio){
-    	        if (iRepositoryEdificio.existsById(codigo)) {
-        	iRepositoryEdificio.deleteById(codigo);
-        } else {
-        	throw new RuntimeException("No existe el edificio con id: "+codigo);
-        }
+    	System.out.println(" here");
+        iRepositoryEdificio.deleteById(codigo);
     }
     
     public void update(Edificio ed,IRepositoryEdificio iRepositoryEdificio){
         if (iRepositoryEdificio.existsById(ed.getCodigo())) {
+        	iRepositoryEdificio.save(ed);
+        }
+    }
+    public void update(Edificio ed,IRepositoryEdificio iRepositoryEdificio, Integer id){
+        if (iRepositoryEdificio.existsById(id)){
+        	ed.setCodigo(id);//mismo codigo
         	iRepositoryEdificio.save(ed);
         }
     }

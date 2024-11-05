@@ -1,102 +1,133 @@
 package administracion.tpo.controller;
 
-import administracion.tpo.dao.ImagenDAO;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.cloudinary.Cloudinary;
+import administracion.tpo.modelo.Persona;
+
+import administracion.tpo.dao.EdificioDAO;
 import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
+import administracion.tpo.modelo.Edificio;
 import administracion.tpo.modelo.Imagen;
 import administracion.tpo.modelo.Reclamo;
 import administracion.tpo.modelo.Unidad;
+import administracion.tpo.repository.IRepositoryEdificio;
 import administracion.tpo.repository.IRepositoryImagen;
+import administracion.tpo.repository.IRepositoryPersona;
 import administracion.tpo.repository.IRepositoryReclamo;
 import administracion.tpo.repository.IRepositoryUnidad;
+import administracion.tpo.views.CrearReclamoView;
+import administracion.tpo.views.EstadoReclamoView;
 import administracion.tpo.views.ReclamoView;
-import jakarta.persistence.Id;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
+import administracion.tpo.views.UnidadView;
 
 @RestController
 @RequestMapping("api/reclamos")
 public class ReclamoController {
-    @Autowired
-    IRepositoryReclamo repositoryReclamo;
-    @Autowired
-    IRepositoryUnidad repositoryUnidad;
-    @Autowired
-    IRepositoryImagen repositoryImagen;
-    private final String uploadDir = "uploads/";
-@PostMapping("/crear")
-public ResponseEntity<Integer> generarReclamo(@RequestBody Reclamo reclamo) {
-    Unidad unidad = UnidadDAO.getInstance().getById(reclamo.getUnidad().getId(), repositoryUnidad).orElseThrow();
-
-    if (!unidad.estaHabitado() && reclamo.getUsuario().equals(unidad.getDuenios())) {
-        throw new RuntimeException("La unidad no esta habitada, solamente el dueño puede hacer el reclamo");
-    } else if (unidad.estaHabitado() && (reclamo.getUsuario().equals(unidad.getInquilinos()) || reclamo.getUsuario().equals(unidad.getDuenios()))) {
-        throw new RuntimeException("La unidad esta habitada, solamente el inquilino o el dueño puede hacer el reclamo");
-    } else {
-        ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
-    }
-    // retorna el id del reclamo para su posterior consulta
-    return ResponseEntity.ok(reclamo.getNumero());
-}
-
-    // recibimos el id como parametro en la url, para edificio y para unidad.
-    @GetMapping("/edificio/{id}")
-    public ResponseEntity<List<ReclamoView>> getReclamosPorEdificio (@PathVariable("id") int idEdificio){
-        List<Reclamo> reclamos = ReclamoDAO.getInstance().getByEdificio(idEdificio,repositoryReclamo);
-        return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
-    }
-
-    @GetMapping("/unidad/{id}")
-    public ResponseEntity<List<ReclamoView>> getReclamosPorUnidad (@PathVariable("id") int idUnidad){
-        List<Reclamo> reclamos = ReclamoDAO.getInstance().getByUnidad(idUnidad, repositoryReclamo);
-        return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
-    }
-
-    /// reveer esto, no se si esta bien
-    @PostMapping("/{id}/imagenes")
-    public ResponseEntity<String> cargarImagen(@PathVariable int id, @RequestParam("file") MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body("File is empty");
-            }
-
-            String fileName = file.getOriginalFilename();
-            Path path = Paths.get(uploadDir + fileName);
-            Files.createDirectories(path.getParent());
-            Files.write(path, file.getBytes());
-
-            Imagen imagen = new Imagen(fileName, file.getContentType());
-            Reclamo reclamo = ReclamoDAO.getInstance().getById(id, repositoryReclamo).orElseThrow();
-            reclamo.agregarImagen(imagen.getDireccion(), imagen.getTipo());
-            ImagenDAO.getInstance().save(imagen, repositoryImagen);
-
-            return ResponseEntity.ok("Image uploaded successfully: " + fileName);
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error al subir la imagen: " + e.getMessage());
-        }
-    }
-    @GetMapping("/{id}")
-    public ResponseEntity<ReclamoView> getReclamo(@PathVariable int id) {
-        Optional<Reclamo> reclamo = ReclamoDAO.getInstance().getById(id, repositoryReclamo);
-        if (reclamo.isPresent()) {
-            return ResponseEntity.ok(reclamo.get().toView());
-        } else {
-            return ResponseEntity.status(404).body(null);
-        }
-    }
-    @GetMapping("/all")
-    public ResponseEntity<List<ReclamoView>> getAllReclamos () {
-        List<Reclamo> reclamos = ReclamoDAO.getInstance().getAll(repositoryReclamo);
-        return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
-    }
+	
+	@Autowired
+	 IRepositoryReclamo repositorioreclamo;
+	
+	@Autowired
+	private Cloudinary cloudinary;
+	
+	@Autowired
+	private IRepositoryImagen imagenrepo;
+	
+	@Autowired
+	 IRepositoryEdificio repoedi;
+	
+	@Autowired
+	 IRepositoryPersona repopersona;
+	
+	@Autowired
+	 IRepositoryUnidad repounidad;
+	
+	@GetMapping("/{id}")
+	public Reclamo getbyId(@PathVariable("id") int id) {
+		Optional<Reclamo> rec=ReclamoDAO.getInstance().getById(id, repositorioreclamo);
+		if(rec.isPresent()) {
+			//tenia problemas de recursividad
+			Reclamo reclamo=rec.get();
+			reclamo.setEdificio(null);
+			reclamo.getUnidad().setEdificio(null);
+			return reclamo;
+		}
+		return null;
+		
+	}
+	
+	@GetMapping
+	public List<Reclamo> getAll() {
+		List<Reclamo> reclamos=ReclamoDAO.getInstance().getAll(repositorioreclamo);
+		
+		//List<ReclamoView> vistas=new ArrayList<ReclamoView>();
+		for(Reclamo r: reclamos) {
+			//vistas.add( r.toView() );
+			r.setEdificio(null);
+			r.getUnidad().setEdificio(null);
+			
+		}
+		return reclamos;
+	}
+	
+	//Reclamo reclamo=crearReclamo("cochera","gotera en techo",p1,ed1,uni1);
+	
+	
+	@PostMapping
+	public Reclamo crearReclamo(@RequestBody CrearReclamoView crearReclamovista) {
+		Reclamo creado=ReclamoDAO.getInstance().crearReclamo(crearReclamovista, repoedi, repositorioreclamo, repopersona, repounidad);
+		if(creado!=null) {
+			creado.setEdificio(null);
+			creado.getUnidad().setEdificio(null);
+		}
+		
+		return creado;// es null
+		
+	}
+	@PutMapping("/{idreclamo}")
+	public Reclamo subir(@PathVariable("idreclamo") int idreclamo,@RequestBody MultipartFile file) {
+		//TODA LA LOGICA DEBERIA ESTAR EN IMAGESERVICE!!!
+		return ReclamoDAO.getInstance().addImagen(imagenrepo, repositorioreclamo, idreclamo,cloudinary,file);
+		
+	}
+	
+	@PutMapping
+	public Reclamo cambiarestado(@RequestBody EstadoReclamoView estadoreclamoview) {
+		//TODA LA LOGICA DEBERIA ESTAR EN IMAGESERVICE!!!
+		Reclamo reclamo =ReclamoDAO.getInstance().cambiarestado(repositorioreclamo, estadoreclamoview );
+		if(reclamo!=null) {
+			reclamo.setEdificio(null);
+			reclamo.getUnidad().setEdificio(null);
+		}
+		
+		return reclamo;
+		
+	}
+	
+	// to do:
+		//
+		//cambiar estado de reclamo(SOLO ADMIN)
+		//borrar reclamo??
+	
+	 
+	
 
 }

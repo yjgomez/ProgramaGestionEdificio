@@ -1,5 +1,6 @@
 package administracion.tpo.modelo;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +9,9 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name="reclamos")
-public class Reclamo {
+
+public class Reclamo implements Serializable {
+    private static final long serialVersionUID = 1L; // Recommended for Serializable classes
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -19,13 +22,13 @@ public class Reclamo {
 	private Persona usuario;
 	
 	@ManyToOne
-	@JoinColumn(name="codigo")
+	@JoinColumn(name="id_edificio")
 	private Edificio edificio;
 	
 	private String ubicacion;
 	
 	@ManyToOne
-	@JoinColumn(name = "identificador")
+	@JoinColumn(name = "id_unidad")
 	private Unidad unidad;
 	
 	private String descripcion;
@@ -37,19 +40,19 @@ public class Reclamo {
 	
 	
 	@Column(name = "imagen")
-	@OneToMany(mappedBy = "reclamo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<Imagen> imagenes = new ArrayList<>();
+	@OneToMany
+	@JoinColumn(name = "id_reclamo")
+	private List<Imagen> imagenes;
 	
-	//fijarse si realmente sirve. Sino, sacarlo
-	private int idtiporeclamo;
 	
 	public void setUsuario(Persona usuario) {
 		this.usuario = usuario;
 	}
 	
-	
+	//----------------------------------------------------------
 	public Reclamo(){
-
+		imagenes = new ArrayList<Imagen>();
+		this.estado = Estado.nuevo; //OJO
 	}
 	
 	
@@ -60,20 +63,9 @@ public class Reclamo {
 		this.descripcion = descripcion;
 		this.unidad = unidad;
 		this.estado = Estado.nuevo;
-		this.idtiporeclamo=idtiporeclamo;
 		imagenes = new ArrayList<Imagen>();
 	}
-
-	// para cargar reclamos comunes del edificio, sin especificar unidad
-	public Reclamo(Persona usuario, Edificio edificio, String ubicacion, String descripcion,int idtiporeclamo) {
-		this.usuario = usuario;
-		this.edificio = edificio;
-		this.ubicacion = ubicacion;
-		this.descripcion = descripcion;
-		this.estado = Estado.nuevo;
-		this.idtiporeclamo=idtiporeclamo;
-		imagenes = new ArrayList<Imagen>();
-	}
+	//----------------------------------------------------------
 	public void agregarImagen(String direccion, String tipo) {
 		Imagen imagen = new Imagen(direccion, tipo);
 		imagenes.add(imagen);
@@ -132,21 +124,45 @@ public class Reclamo {
 	public String toString() {
 		return "Reclamo [idreclamo=" + idreclamo + ", usuario=" + usuario + ", edificio=" + edificio + ", ubicacion="
 				+ ubicacion + ", unidad=" + unidad + ", descripcion=" + descripcion + ", estado=" + estado
-				+ ", imagenes=" + imagenes + ", idtiporeclamo=" + idtiporeclamo + "]";
+				+ ", imagenes=" + imagenes;
 	}
 
 
-	public int getIdtiporeclamo() {
-		return idtiporeclamo;
+	public int getIdreclamo() {
+		return idreclamo;
 	}
 
+	public void setIdreclamo(int idreclamo) {
+		this.idreclamo = idreclamo;
+	}
 
-	public void setIdtiporeclamo(int idtiporeclamo) {
-		this.idtiporeclamo = idtiporeclamo;
+	public void setEdificio(Edificio edificio) {
+		this.edificio = edificio;
+	}
+
+	public void setUbicacion(String ubicacion) {
+		this.ubicacion = ubicacion;
+	}
+
+	public void setUnidad(Unidad unidad) {
+		this.unidad = unidad;
+	}
+
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+	public void setEstado(Estado estado) {
+		this.estado = estado;
 	}
 
 	public ReclamoView toView() {
-		return new ReclamoView(idreclamo, usuario.toView(), edificio.toView(), ubicacion, descripcion, unidad.toView(), estado, imagenes.stream().map(Imagen::toView).toList());
+		// TODO Auto-generated method stub
+		
+		return new ReclamoView(this.descripcion, this.estado, this.ubicacion, this.unidad, this.usuario);
 	}
+	
+	
+	
 	
 }

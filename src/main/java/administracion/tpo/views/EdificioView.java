@@ -1,5 +1,8 @@
 package administracion.tpo.views;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import administracion.tpo.modelo.Edificio;
 
 public class EdificioView {
@@ -7,6 +10,7 @@ public class EdificioView {
 	private int codigo;
 	private String nombre;
 	private String direccion;
+	private List<UnidadView> unidadesview=new ArrayList<UnidadView>();
 	
 	public EdificioView () {}
 	
@@ -14,6 +18,13 @@ public class EdificioView {
 		this.codigo = codigo;
 		this.nombre = nombre;
 		this.direccion = direccion;
+	}
+	
+	public EdificioView(Edificio edi) {
+		this.codigo = edi.getCodigo();
+		this.nombre = edi.getNombre();
+		this.direccion = edi.getDireccion();
+		this.unidadesview=edi.getUnidadesView();
 	}
 
 	public int getCodigo() {
@@ -44,9 +55,13 @@ public class EdificioView {
 		return codigo + " " + nombre; 
 	}
 
-	public Edificio toEntity () {
-		Edificio edificio = new Edificio(this.getNombre(), this.getDireccion());
-		edificio.setCodigo(this.getCodigo());
-		return edificio;
+	public List<UnidadView> getUnidadesview() {
+		return unidadesview;
 	}
+
+	public void setUnidadesview(List<UnidadView> unidadesview) {
+		this.unidadesview = unidadesview;
+	}
+	
+	
 }

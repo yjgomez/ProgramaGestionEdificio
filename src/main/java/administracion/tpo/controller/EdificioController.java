@@ -1,24 +1,15 @@
 package administracion.tpo.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import administracion.tpo.dao.ReclamoDAO;
-import administracion.tpo.dao.UnidadDAO;
-import administracion.tpo.modelo.Reclamo;
-import administracion.tpo.modelo.Unidad;
-import administracion.tpo.repository.IRepositoryReclamo;
-import administracion.tpo.repository.IRepositoryUnidad;
-import administracion.tpo.views.EdificioView;
-import administracion.tpo.views.ReclamoView;
-import administracion.tpo.views.UnidadView;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import administracion.tpo.dao.EdificioDAO;
 import administracion.tpo.modelo.Edificio;
 import administracion.tpo.repository.IRepositoryEdificio;
+import administracion.tpo.views.EdificioView;
+import administracion.tpo.views.UnidadView;
 
 @RestController
 @RequestMapping("api/edificios")
@@ -34,49 +27,54 @@ public class EdificioController {
 	
 	@Autowired
 	 IRepositoryEdificio repositoryEdificio;
-	@Autowired
-	IRepositoryUnidad repositoryUnidad;
-	@Autowired
-	IRepositoryReclamo repositoryReclamo;
 	
 	@GetMapping
-	public List<Edificio> getAll() {
-		return EdificioDAO.getInstance().getAll(repositoryEdificio);
+	public List<EdificioView> getAll() {
+		List<Edificio> edificios=EdificioDAO.getInstance().getAll(repositoryEdificio);
+		List<EdificioView> edificioview=new ArrayList<EdificioView>();
+		for(Edificio e:edificios) {
+			edificioview.add(e.toView());
+		}
+		return edificioview;
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<EdificioView> getById(@PathVariable("id") int id) {
+	public EdificioView getById(@PathVariable("id") int id) {
 		//la rta es http://localhost:8080/api/edificios/2
 		Optional<Edificio> e =EdificioDAO.getInstance().getById(id, repositoryEdificio);
 		if(e.isPresent()) {
 			Edificio ed=e.get();
-			return ResponseEntity.ok(ed.toView());
+			EdificioView edview=ed.toView();
+			
+			return edview;
+			//return ed;
 		}else {
-			throw new RuntimeException("No existe el edificio con id: "+id);
+			System.out.println("no existe ese edificio");
+			return null;
 		}
 	}
-
-
+	
 	@DeleteMapping("/{id}")
-	public ResponseEntity<String> deleteById(@PathVariable("id") int id) {
+	public void deleteById(@PathVariable("id") int id) {
 		EdificioDAO.getInstance().delete(id,repositoryEdificio);
-		return ResponseEntity.ok("Edificio eliminado");
 	}
 	
 	@PostMapping
-	public void createProducto(@RequestBody EdificioView edi) {
-		EdificioDAO.getInstance().save(edi.toEntity(), repositoryEdificio);
+	public void createEdificio(@RequestBody Edificio edi) {
+		EdificioDAO.getInstance().save(edi, repositoryEdificio);
 	}
-	@GetMapping("/{id}/unidades")
-	public ResponseEntity<List<UnidadView>> getUnidadesByEdificio (@PathVariable Integer id) {
-		Optional<Edificio> e = EdificioDAO.getInstance().getById(id, repositoryEdificio);
-		if(e.isPresent()) {
-			Edificio ed = e.get();
-			List<UnidadView> unidadesViews = UnidadDAO.getInstance().getByIdEdificio(ed.getCodigo(), repositoryUnidad).stream().map(Unidad::toView).toList();
-			return ResponseEntity.ok(unidadesViews);
-		}else {
-			throw new RuntimeException("No existe el edificio con id: "+id);
-		}
+	
+	//metodo de prueba
+	@GetMapping("/saludo")  //http://localhost:8080/api/edificios/saludo
+	public String saludar() {
+		return "hola ";
+	}
+	
+	//update
+	@PutMapping("/{id}")
+	public void updateEdificio(@PathVariable("id") int id,@RequestBody Edificio edi) {
+		
+		EdificioDAO.getInstance().update(edi, repositoryEdificio,id);
 	}
 	
 }

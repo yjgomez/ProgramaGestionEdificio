@@ -1,5 +1,7 @@
 package administracion.tpo.views;
 
+import administracion.tpo.modelo.Persona;
+
 public class PersonaView {
 	
 	private String documento;
@@ -10,6 +12,10 @@ public class PersonaView {
 	public PersonaView(String documento, String nombre) {
 		this.documento = documento;
 		this.nombre = nombre;
+	}
+	public PersonaView(Persona per) {
+		this.documento = per.getDocumento();
+		this.nombre = per.getNombre();
 	}
 
 	public String getDocumento() {
