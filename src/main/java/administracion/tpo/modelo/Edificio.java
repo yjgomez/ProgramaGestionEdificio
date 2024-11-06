@@ -22,6 +22,17 @@ public class Edificio {
 	private String nombre;
 	
 	private String direccion;
+	@OneToMany(mappedBy = "edificio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<Unidad> unidades=new ArrayList<Unidad>();
+
+	public Edificio(){
+
+	}
+	public Edificio( String nombre, String direccion) {
+		this.nombre = nombre;
+		this.direccion = direccion;
+		unidades = new ArrayList<>();
+	}
 
 	public void setCodigo(int codigo) {
 		this.codigo = codigo;
@@ -39,24 +50,8 @@ public class Edificio {
 		this.unidades = unidades;
 	}
 
-	//@Column(name = "unidades")
-	/*
-	@OneToMany(fetch = FetchType.LAZY,mappedBy = "codigoedificio" ) //mappedBy = "edificio"
-	@JoinColumn(name = "identificador")
-	private List<Unidad> unidades=new ArrayList<Unidad>();
-	*/
-	@OneToMany(mappedBy = "edificio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Unidad> unidades=new ArrayList<Unidad>();
 
-	public Edificio(){
 
-	}
-	public Edificio( String nombre, String direccion) {
-		
-		this.nombre = nombre;
-		this.direccion = direccion;
-		unidades = new ArrayList<Unidad>();
-	}
 	
 	public void agregarUnidad(Unidad unidad) {
 		unidades.add(unidad);
@@ -104,17 +99,12 @@ public class Edificio {
 	public Set<Persona> habitantes() {
 		Set<Persona> resultado = new HashSet<Persona>();
 		for(Unidad unidad : unidades) {
-			if(unidad.estaHabitado()) {
+			if (unidad.estaHabitado()) {
 				List<Persona> inquilinos = unidad.getInquilinos();
-				if(inquilinos.size() > 0) 
-					for(Persona p : inquilinos)
-						resultado.add(p);
-				else {
-					List<Persona> duenios = unidad.getDuenios();
-					for(Persona p : duenios)
-						resultado.add(p);
-				}
+				resultado.addAll(inquilinos);
 			}
+			List<Persona> duenios = unidad.getDuenios();
+			resultado.addAll(duenios);
 		}
 		return resultado;
 	}

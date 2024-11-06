@@ -23,8 +23,8 @@ public class Reclamo {
 	private Edificio edificio;
 	
 	private String ubicacion;
-	
-	@ManyToOne
+
+	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "identificador")
 	private Unidad unidad;
 	

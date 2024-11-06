@@ -24,7 +24,7 @@ import administracion.tpo.modelo.Edificio;
 import administracion.tpo.repository.IRepositoryEdificio;
 
 @RestController
-@RequestMapping("api/edificios")
+@RequestMapping("/api/edificios")
 public class EdificioController {
 	//la ruta es http://localhost:8080/api/edificios
 	
@@ -59,9 +59,11 @@ public class EdificioController {
 		return ResponseEntity.ok("Edificio eliminado");
 	}
 	
-	@PostMapping
-	public void createProducto(@RequestBody EdificioView edi) {
-		EdificioDAO.getInstance().save(edi.toEntity(), repositoryEdificio);
+	@PostMapping("/crear")
+	public ResponseEntity<EdificioView> createProducto(@RequestBody EdificioView edi) {
+		Edificio edificio = new Edificio(edi.getNombre(), edi.getDireccion());
+		EdificioDAO.getInstance().save(edificio, repositoryEdificio);
+		return ResponseEntity.ok(edi);
 	}
 	@GetMapping("/{id}/unidades")
 	public ResponseEntity<List<UnidadView>> getUnidadesByEdificio (@PathVariable Integer id) {
@@ -74,10 +76,15 @@ public class EdificioController {
 			throw new RuntimeException("No existe el edificio con id: "+id);
 		}
 	}
-	@PutMapping("/{id}/unidades/disponibles/alquilar")
-	public ResponseEntity<UnidadView> alquilarUnidad (@RequestBody Unidad unidad, @RequestBody Persona persona, @PathVariable Integer id) throws UnidadException {
-		UnidadDAO.getInstance().alquilar(unidad, repositoryUnidad, persona);
-		return ResponseEntity.ok(unidad.toView());
+	@GetMapping("/{id}/habitantes")
+	public ResponseEntity<List<Persona>> getHabitantesByEdificio (@PathVariable Integer id) {
+		Optional<Edificio> e = EdificioDAO.getInstance().getById(id, repositoryEdificio);
+		if(e.isPresent()) {
+			Edificio ed = e.get();
+			List<Persona> habitantes = ed.habitantes().stream().toList();
+			return ResponseEntity.ok(habitantes);
+		}else {
+			throw new RuntimeException("No existe el edificio con id: "+id);
+		}
 	}
-	
 }

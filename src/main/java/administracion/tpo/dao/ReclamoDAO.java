@@ -48,8 +48,8 @@ public class ReclamoDAO {
         	iRepositoryReclamo.save(reclamo);
         }
     }
-    
-    
-
+    public void deleteReclamosByUnidadId(int identificador, IRepositoryReclamo iRepositoryReclamo){
+        iRepositoryReclamo.deleteReclamosByUnidadId(identificador);
+    }
 
 }

@@ -44,8 +44,8 @@ public class Unidad {
         inverseJoinColumns = @JoinColumn(name = "documento")
     )
 	private List<Persona> inquilinos;
-
-	
+	@OneToMany(mappedBy = "unidad", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<Reclamo> reclamos;
 	public Unidad(){
 
 	}
@@ -77,6 +77,12 @@ public class Unidad {
 		}
 		else
 			throw new UnidadException("La unidad esta ocupada");
+	}
+	public boolean esDuenio(Persona persona) {
+		return duenios.contains(persona);
+	}
+	public boolean esInquilino(Persona persona) {
+		return inquilinos.contains(persona);
 	}
 
 	public void agregarInquilino(Persona inquilino) {

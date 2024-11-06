@@ -45,6 +45,9 @@ public class UnidadDAO {
             throw new UnidadException("Unidad no encontrada" + unidadView.getId());
         }
     }
+    public void deleteById (Integer id, IRepositoryUnidad iRepositoryUnidad) {
+        iRepositoryUnidad.deleteById(id);
+    }
     
     public void update(Unidad unidad, IRepositoryUnidad iRepositoryUnidad){
         if (iRepositoryUnidad.existsById(unidad.getId())) {

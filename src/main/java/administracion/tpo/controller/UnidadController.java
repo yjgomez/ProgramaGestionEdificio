@@ -1,12 +1,14 @@
 package administracion.tpo.controller;
 
 import administracion.tpo.dao.PersonaDAO;
+import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
 import administracion.tpo.exceptions.UnidadException;
 import administracion.tpo.modelo.Persona;
 import administracion.tpo.modelo.Unidad;
 import administracion.tpo.repository.IRepositoryEdificio;
 import administracion.tpo.repository.IRepositoryPersona;
+import administracion.tpo.repository.IRepositoryReclamo;
 import administracion.tpo.repository.IRepositoryUnidad;
 import administracion.tpo.views.PersonaView;
 import administracion.tpo.views.UnidadView;
@@ -31,6 +33,8 @@ public class UnidadController {
 
     @Autowired
     IRepositoryPersona repopersona;
+    @Autowired
+    IRepositoryReclamo repositoryReclamo;
 
     @GetMapping
     public List<UnidadView> getAll() {
@@ -76,33 +80,47 @@ public class UnidadController {
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUnidad(@RequestBody UnidadView unidadView) throws UnidadException {
         UnidadDAO.getInstance().delete(unidadView, repositoriounidad);
-        return ResponseEntity.ok("Unidad eliminada");
+        ReclamoDAO.getInstance().deleteReclamosByUnidadId(unidadView.getId(), repositoryReclamo);
+        return ResponseEntity.ok("Unidad eliminada por request");
     }
-    @PostMapping("/alquilar")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteUnidadById (@PathVariable Integer id) {
+        UnidadDAO.getInstance().deleteById(id, repositoriounidad);
+        return ResponseEntity.ok("Unidad eliminada por request");
+    }
+
+    @PutMapping("/alquilar")
     public ResponseEntity<UnidadView> alquilarUnidad (@RequestBody Unidad unidad, @RequestBody PersonaView personaView) throws UnidadException {
         Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
         Unidad unidadPorAlquilarse = UnidadDAO.getInstance().alquilar(unidad, repositoriounidad, persona);
         return ResponseEntity.ok(unidadPorAlquilarse.toView());
     }
-    @PostMapping("/transferir")
+    @PutMapping("/transferir")
     public ResponseEntity<UnidadView> crearCompra (@RequestBody UnidadView unidadView, @RequestBody PersonaView personaView) throws UnidadException {
         Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
         Unidad unidad = UnidadDAO.getInstance().getById(unidadView.getId(), repositoriounidad).orElseThrow();
         UnidadDAO.getInstance().transferir(unidad, persona, repositoriounidad);
         return ResponseEntity.ok(unidad.toView());
     }
-    @PostMapping("/deleteInquilino")
+    @PutMapping("/deleteInquilino")
     public ResponseEntity<String> borrarInquilino (@RequestBody UnidadView unidadView, @RequestBody PersonaView personaView) throws UnidadException {
         Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
         Unidad unidad = UnidadDAO.getInstance().getById(unidadView.getId(), repositoriounidad).orElseThrow();
         UnidadDAO.getInstance().borrarInquilino(unidad, persona, repositoriounidad);
         return ResponseEntity.ok("Inquilino eliminado");
     }
-    @PostMapping("/liberarUnidad")
+    @PutMapping("/liberarUnidad")
     public ResponseEntity<String> liberarUnidad (@RequestBody UnidadView unidadView, @RequestBody PersonaView personaView) throws UnidadException {
         Unidad unidad = UnidadDAO.getInstance().getById(unidadView.getId(), repositoriounidad).orElseThrow();
         Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
         UnidadDAO.getInstance().liberarUnidad(unidad,persona, repositoriounidad);
         return ResponseEntity.ok("Unidad liberada");
     }
+    @GetMapping("/inquilinos/{id}")
+    public ResponseEntity<List<PersonaView>> getInquilinosByUnidadId (@PathVariable Integer id) {
+        List<Persona> inquilinos = UnidadDAO.getInstance().getById(id, repositoriounidad).orElseThrow().getInquilinos();
+        return ResponseEntity.ok(inquilinos.stream().map(Persona::toView).toList());
+    }
+
+
 }

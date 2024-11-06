@@ -1,14 +1,8 @@
 package administracion.tpo.controller;
 
-import administracion.tpo.dao.ImagenDAO;
-import administracion.tpo.dao.ReclamoDAO;
-import administracion.tpo.dao.UnidadDAO;
-import administracion.tpo.modelo.Imagen;
-import administracion.tpo.modelo.Reclamo;
-import administracion.tpo.modelo.Unidad;
-import administracion.tpo.repository.IRepositoryImagen;
-import administracion.tpo.repository.IRepositoryReclamo;
-import administracion.tpo.repository.IRepositoryUnidad;
+import administracion.tpo.dao.*;
+import administracion.tpo.modelo.*;
+import administracion.tpo.repository.*;
 import administracion.tpo.views.ReclamoView;
 import jakarta.persistence.Id;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +16,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
-@RequestMapping("api/reclamos")
+@RequestMapping("/api/reclamos")
 public class ReclamoController {
     @Autowired
     IRepositoryReclamo repositoryReclamo;
@@ -32,21 +27,40 @@ public class ReclamoController {
     IRepositoryUnidad repositoryUnidad;
     @Autowired
     IRepositoryImagen repositoryImagen;
+    @Autowired
+    IRepositoryPersona repositoryPersona;
+    @Autowired
+    IRepositoryEdificio repositoryEdificio;
     private final String uploadDir = "uploads/";
 @PostMapping("/crear")
 public ResponseEntity<Integer> generarReclamo(@RequestBody Reclamo reclamo) {
     Unidad unidad = UnidadDAO.getInstance().getById(reclamo.getUnidad().getId(), repositoryUnidad).orElseThrow();
-
-    if (!unidad.estaHabitado() && reclamo.getUsuario().equals(unidad.getDuenios())) {
+    Persona persona = PersonaDAO.getInstance().getById(reclamo.getUsuario().getDocumento(), repositoryPersona).orElseThrow();
+    if (!unidad.estaHabitado() && !unidad.esDuenio(persona)) {
         throw new RuntimeException("La unidad no esta habitada, solamente el dueño puede hacer el reclamo");
-    } else if (unidad.estaHabitado() && (reclamo.getUsuario().equals(unidad.getInquilinos()) || reclamo.getUsuario().equals(unidad.getDuenios()))) {
-        throw new RuntimeException("La unidad esta habitada, solamente el inquilino o el dueño puede hacer el reclamo");
-    } else {
-        ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
+    } else if (unidad.estaHabitado() && !unidad.esInquilino(persona)) {
+        throw new RuntimeException("La unidad esta habitada, solamente el inquilino puede hacer el reclamo");
     }
-    // retorna el id del reclamo para su posterior consulta
-    return ResponseEntity.ok(reclamo.getNumero());
+    else {
+        ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
+        return ResponseEntity.ok(reclamo.getNumero());
+        // retorna el id del reclamo para su posterior consulta
+    }
 }
+
+@PostMapping("/crearParteComun")
+    public ResponseEntity<Integer> generarReclamoParteComun(@RequestBody Reclamo reclamo) {
+        Edificio edificio = EdificioDAO.getInstance().getById(reclamo.getEdificio().getCodigo(), repositoryEdificio).orElseThrow();
+        Persona persona = PersonaDAO.getInstance().getById(reclamo.getUsuario().getDocumento(), repositoryPersona).orElseThrow();
+        Set<Persona> habitantes = edificio.habitantes();
+        // Verificar si la persona tiene alguna relación con el edificio (dueño o inquilino de alguna unidad)
+        if (!habitantes.contains(persona)) {
+            throw new RuntimeException("Solo las personas relacionadas con el edificio pueden hacer un reclamo de parte común.");
+        } else {
+            ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
+            return ResponseEntity.ok(reclamo.getNumero()); // Retorna el ID del reclamo
+        }
+    }
 
     // recibimos el id como parametro en la url, para edificio y para unidad.
     @GetMapping("/edificio/{id}")
