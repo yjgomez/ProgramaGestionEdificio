@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
+import administracion.tpo.exceptions.UnidadException;
+import administracion.tpo.modelo.Persona;
 import administracion.tpo.modelo.Reclamo;
 import administracion.tpo.modelo.Unidad;
 import administracion.tpo.repository.IRepositoryReclamo;
@@ -15,13 +17,7 @@ import administracion.tpo.views.ReclamoView;
 import administracion.tpo.views.UnidadView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import administracion.tpo.dao.EdificioDAO;
 import administracion.tpo.modelo.Edificio;
@@ -77,6 +73,11 @@ public class EdificioController {
 		}else {
 			throw new RuntimeException("No existe el edificio con id: "+id);
 		}
+	}
+	@PutMapping("/{id}/unidades/disponibles/alquilar")
+	public ResponseEntity<UnidadView> alquilarUnidad (@RequestBody Unidad unidad, @RequestBody Persona persona, @PathVariable Integer id) throws UnidadException {
+		UnidadDAO.getInstance().alquilar(unidad, repositoryUnidad, persona);
+		return ResponseEntity.ok(unidad.toView());
 	}
 	
 }
