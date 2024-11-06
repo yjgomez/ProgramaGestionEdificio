@@ -141,16 +141,4 @@ public class Unidad {
 		return "Unidad [id=" + id + ", piso=" + piso + ", numero=" + numero + ", habitado=" + habitado + ", edificio="
 				+ edificio + "]";
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }

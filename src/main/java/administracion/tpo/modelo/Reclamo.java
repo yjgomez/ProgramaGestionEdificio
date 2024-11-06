@@ -61,7 +61,7 @@ public class Reclamo {
 		this.unidad = unidad;
 		this.estado = Estado.nuevo;
 		this.idtiporeclamo=idtiporeclamo;
-		imagenes = new ArrayList<Imagen>();
+		imagenes = new ArrayList<>();
 	}
 
 	// para cargar reclamos comunes del edificio, sin especificar unidad
@@ -72,12 +72,12 @@ public class Reclamo {
 		this.descripcion = descripcion;
 		this.estado = Estado.nuevo;
 		this.idtiporeclamo=idtiporeclamo;
-		imagenes = new ArrayList<Imagen>();
+		imagenes = new ArrayList<>();
 	}
 	public void agregarImagen(String direccion, String tipo) {
 		Imagen imagen = new Imagen(direccion, tipo);
 		imagenes.add(imagen);
-		imagen.save(idreclamo);
+		imagen.setReclamo(this);
 	}
 	
 	public int getNumero() {
@@ -118,6 +118,10 @@ public class Reclamo {
 	
 	public void cambiarEstado(Estado estado) {
 		this.estado = estado;
+	}
+
+	public void setUnidad(Unidad unidad) {
+		this.unidad = unidad;
 	}
 
 	public void save() {

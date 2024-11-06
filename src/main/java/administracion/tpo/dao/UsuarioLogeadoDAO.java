@@ -17,4 +17,10 @@ public class UsuarioLogeadoDAO {
     public Optional<UsuarioLogeado> getByUsername(String username, IRepositoryUsuarioLogeado iRepositoryUsuarioLogeado){
         return iRepositoryUsuarioLogeado.findById(username);
     }
+    public void save(UsuarioLogeado usuarioLogeado, IRepositoryUsuarioLogeado iRepositoryUsuarioLogeado){
+        iRepositoryUsuarioLogeado.save(usuarioLogeado);
+    }
+    public UsuarioLogeado getUser (String username, String password, IRepositoryUsuarioLogeado iRepositoryUsuarioLogeado) {
+        return iRepositoryUsuarioLogeado.findBy(username, password);
+    }
 }
