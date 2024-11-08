@@ -1,5 +1,6 @@
 package administracion.tpo.controller;
 
+import administracion.tpo.dao.EdificioDAO;
 import administracion.tpo.dao.PersonaDAO;
 import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
@@ -13,6 +14,7 @@ import administracion.tpo.repository.IRepositoryUnidad;
 import administracion.tpo.views.PersonaView;
 import administracion.tpo.views.UnidadView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,100 +28,117 @@ public class UnidadController {
 
 
     @Autowired
-    IRepositoryUnidad repositoriounidad;
+    UnidadDAO repositoriounidad;
 
     @Autowired
-    IRepositoryEdificio repositoryEdificio;
+    EdificioDAO repositoryEdificio;
 
     @Autowired
-    IRepositoryPersona repopersona;
+    PersonaDAO repopersona;
     @Autowired
-    IRepositoryReclamo repositoryReclamo;
+    ReclamoDAO repositoryReclamo;
 
-    @GetMapping
-    public List<UnidadView> getAll() {
-        List<Unidad> unidades= UnidadDAO.getInstance().getAll(repositoriounidad);
-        List<UnidadView> unidadesview=new ArrayList<UnidadView>();
-        for(Unidad e:unidades) {
-            unidadesview.add(e.toView());
-        }
-        return unidadesview;
+    @GetMapping("/")
+    public ResponseEntity<List<Unidad>> getAll(){
+        List<Unidad> unidades = repositoriounidad.getAll();
+        return new ResponseEntity<>(unidades, HttpStatus.OK);
     }
 
     @GetMapping("/disponibles")
-    public List<UnidadView> getAllDisponibles() {
-        List<Unidad> unidades=UnidadDAO.getInstance().getAll(repositoriounidad);
-        List<UnidadView> unidadesview =new ArrayList<>();
+    public List<Unidad> getAllDisponibles() {
+        List<Unidad> unidades=repositoriounidad.getAll();
+        List<Unidad> disponibles =new ArrayList<>();
+
         for(Unidad e:unidades) {
             if(!e.estaHabitado()) {
-                unidadesview.add(e.toView());
+                disponibles.add(e);
             }
 
         }
-        return unidadesview;
+        return disponibles;
     }
 
     @GetMapping("/{id}")
-    public UnidadView getById( @PathVariable("id") int id) {
+    public ResponseEntity<Unidad> getById( @PathVariable("id") int id) {
         //la rta es http://localhost:8080/api/edificios/2
-        Optional<Unidad> e =UnidadDAO.getInstance().getById(id, repositoriounidad);
+        Optional<Unidad> e =repositoriounidad.getById(id);
         if(e.isPresent()) {
-            Unidad ed=e.get();
-            return ed.toView();
+            return new ResponseEntity<>(e.get(), HttpStatus.OK);
         }else {
             System.out.println("no existe esa unidad");
-            return null;
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-    @PostMapping("/{id}/crear") // se le envia por parametro a la url el id del edificio
-    public ResponseEntity<UnidadView> crearUnidad(@PathVariable Integer id,@RequestBody Unidad unidad) {
-        UnidadDAO.getInstance().save(unidad, repositoriounidad);
-        return ResponseEntity.ok(unidad.toView());
+    @PostMapping("/crear") // se le envia por parametro a la url el id del edificio
+    public ResponseEntity<Unidad> crearUnidad(@RequestBody Unidad unidad) {
+        repositoriounidad.save(unidad);
+        return new ResponseEntity<>(unidad, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteUnidad(@RequestBody UnidadView unidadView) throws UnidadException {
-        UnidadDAO.getInstance().delete(unidadView, repositoriounidad);
-        ReclamoDAO.getInstance().deleteReclamosByUnidadId(unidadView.getId(), repositoryReclamo);
+    public ResponseEntity<String> deleteUnidad(@RequestBody Unidad unidad) throws UnidadException {
+        repositoriounidad.delete(unidad);
+        repositoryReclamo.deleteReclamosByUnidadId(unidad.getId());
         return ResponseEntity.ok("Unidad eliminada por request");
     }
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUnidadById (@PathVariable Integer id) {
-        UnidadDAO.getInstance().deleteById(id, repositoriounidad);
+        repositoriounidad.deleteById(id);
         return ResponseEntity.ok("Unidad eliminada por request");
     }
 
-    @PutMapping("/alquilar")
-    public ResponseEntity<UnidadView> alquilarUnidad (@RequestBody Unidad unidad, @RequestBody PersonaView personaView) throws UnidadException {
-        Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
-        Unidad unidadPorAlquilarse = UnidadDAO.getInstance().alquilar(unidad, repositoriounidad, persona);
-        return ResponseEntity.ok(unidadPorAlquilarse.toView());
+    @PutMapping("/{id}/alquilar")
+    public ResponseEntity<Unidad> alquilarUnidad (@PathVariable int id,@RequestBody Persona persona) throws UnidadException {
+        Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        if(uOpt.isPresent()) {
+            Unidad unidad = uOpt.get();
+            unidad.alquilar(persona);
+            System.out.println(unidad.estaHabitado());
+            repositoriounidad.save(unidad);
+        return new ResponseEntity<>(unidad, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
-    @PutMapping("/transferir")
-    public ResponseEntity<UnidadView> crearCompra (@RequestBody UnidadView unidadView, @RequestBody PersonaView personaView) throws UnidadException {
-        Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
-        Unidad unidad = UnidadDAO.getInstance().getById(unidadView.getId(), repositoriounidad).orElseThrow();
-        UnidadDAO.getInstance().transferir(unidad, persona, repositoriounidad);
-        return ResponseEntity.ok(unidad.toView());
+    @PutMapping("/{id}/transferir")
+    public ResponseEntity<Unidad> transferir (@PathVariable int id, @RequestBody Persona persona) throws UnidadException {
+        Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        if(uOpt.isPresent()) {
+            Unidad unidad = uOpt.get();
+            repositoriounidad.transferir(unidad, persona);
+            return new ResponseEntity<>(unidad, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    @PutMapping("/deleteInquilino")
-    public ResponseEntity<String> borrarInquilino (@RequestBody UnidadView unidadView, @RequestBody PersonaView personaView) throws UnidadException {
-        Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
-        Unidad unidad = UnidadDAO.getInstance().getById(unidadView.getId(), repositoriounidad).orElseThrow();
-        UnidadDAO.getInstance().borrarInquilino(unidad, persona, repositoriounidad);
-        return ResponseEntity.ok("Inquilino eliminado");
+    @PutMapping("/{id}/deleteInquilino")
+    public ResponseEntity<String> borrarInquilino (@PathVariable int id, @RequestBody Persona persona) throws UnidadException {
+        Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        if(uOpt.isPresent()) {
+            Unidad unidad = uOpt.get();
+            repositoriounidad.borrarInquilino(unidad, persona);
+             return new ResponseEntity<>("Inquilino eliminado", HttpStatus.OK);
+        }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    @PutMapping("/liberarUnidad")
-    public ResponseEntity<String> liberarUnidad (@RequestBody UnidadView unidadView, @RequestBody PersonaView personaView) throws UnidadException {
-        Unidad unidad = UnidadDAO.getInstance().getById(unidadView.getId(), repositoriounidad).orElseThrow();
-        Persona persona = PersonaDAO.getInstance().getById(personaView.getDocumento(), repopersona).orElseThrow();
-        UnidadDAO.getInstance().liberarUnidad(unidad,persona, repositoriounidad);
-        return ResponseEntity.ok("Unidad liberada");
+    @PutMapping("/{id}/liberarUnidad")
+    public ResponseEntity<String> liberarUnidad (@PathVariable int id, @RequestBody Persona persona) throws UnidadException {
+        Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        if(uOpt.isPresent()) {
+            Unidad unidad = uOpt.get();
+            repositoriounidad.liberarUnidad(unidad,persona);
+            return new ResponseEntity<>("unidad liberada",HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
     @GetMapping("/inquilinos/{id}")
-    public ResponseEntity<List<PersonaView>> getInquilinosByUnidadId (@PathVariable Integer id) {
-        List<Persona> inquilinos = UnidadDAO.getInstance().getById(id, repositoriounidad).orElseThrow().getInquilinos();
-        return ResponseEntity.ok(inquilinos.stream().map(Persona::toView).toList());
+    public ResponseEntity<List<Persona>> getInquilinosByUnidadId (@PathVariable Integer id) {
+        Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        if(uOpt.isPresent()) {
+            List<Persona> inquilinos = uOpt.get().getInquilinos();
+            return new ResponseEntity<>(inquilinos, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
 

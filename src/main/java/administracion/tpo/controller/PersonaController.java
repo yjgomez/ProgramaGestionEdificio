@@ -1,0 +1,59 @@
+package administracion.tpo.controller;
+
+import administracion.tpo.dao.PersonaDAO;
+import administracion.tpo.modelo.Persona;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.swing.text.html.Option;
+import java.security.PublicKey;
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/personas")
+public class PersonaController {
+
+    @Autowired
+    private PersonaDAO personaDAO;
+
+
+    @GetMapping("/obtenerpersonas")
+    public ResponseEntity<List<Persona>>obtenerpersonas(){
+        List<Persona>personas=personaDAO.getAll();
+        return new ResponseEntity<>(personas, HttpStatus.OK);
+    }
+
+    @GetMapping("/obtenerporid/{dni}")
+    public ResponseEntity<Persona>obtenerporid(@PathVariable String dni){
+        Optional<Persona>p=personaDAO.getById(dni);
+        Persona nueva=null;
+        if(p.isPresent()){
+            nueva = p.get();
+            return new ResponseEntity<>(nueva,HttpStatus.OK);
+        }
+        return new ResponseEntity<>(nueva,HttpStatus.NOT_FOUND);
+    }
+
+    @PostMapping("/guardarpersona")
+    public ResponseEntity<Persona>guardarpersonas(@RequestBody Persona persona){
+        personaDAO.save(persona);
+        return new ResponseEntity<>(persona,HttpStatus.CREATED);
+    }
+
+
+    @DeleteMapping("/{dni}")
+    public  ResponseEntity<Void>eliminar(@PathVariable String dni){
+        Optional<Persona>p=personaDAO.getById(dni);
+        if(p.isPresent()){
+            personaDAO.delete(p.get().getDocumento());
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+
+
+}

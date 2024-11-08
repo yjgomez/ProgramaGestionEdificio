@@ -6,6 +6,7 @@ import java.util.List;
 import administracion.tpo.exceptions.UnidadException;
 import administracion.tpo.views.EdificioView;
 import administracion.tpo.views.UnidadView;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -26,6 +27,7 @@ public class Unidad {
 	*/
 	@ManyToOne
     @JoinColumn(name = "edificio_id")
+	@JsonBackReference("unidades")
     private Edificio edificio;
 	
 	//poner el LAZY

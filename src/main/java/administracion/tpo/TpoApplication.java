@@ -20,17 +20,6 @@ public class TpoApplication implements CommandLineRunner {
 		SpringApplication.run(TpoApplication.class, args);
 	}
 
-	@Autowired
-	 IRepositoryPersona repositoryPersona;
-	@Autowired
-	 IRepositoryEdificio repositoryEdificio;
-	@Autowired
-	 IRepositoryUnidad repositoryUnidad;
-	@Autowired
-	 IRepositoryImagen repositoryImagen;
-	@Autowired
-	 IRepositoryReclamo repositoryReclamo;
-	
 	
 
 	@Override

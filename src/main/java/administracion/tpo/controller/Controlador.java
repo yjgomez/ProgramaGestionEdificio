@@ -17,7 +17,9 @@ public class Controlador {
 
 	private static Controlador instancia;
 	
-	private Controlador() { }
+	private Controlador() {
+		//comentario
+	}
 	
 	public static Controlador getInstancia() {
 		if(instancia == null)

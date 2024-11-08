@@ -28,23 +28,24 @@ import java.util.UUID;
 @RequestMapping("/api/reclamos")
 public class ReclamoController {
     @Autowired
-    IRepositoryReclamo repositoryReclamo;
+    ReclamoDAO repositoryReclamo;
     @Autowired
-    IRepositoryUnidad repositoryUnidad;
+    UnidadDAO repositoryUnidad;
     @Autowired
-    IRepositoryImagen repositoryImagen;
+    ImagenDAO repositoryImagen;
     @Autowired
-    IRepositoryPersona repositoryPersona;
+    PersonaDAO repositoryPersona;
     @Autowired
-    IRepositoryEdificio repositoryEdificio;
+    EdificioDAO repositoryEdificio;
 
     // ruta base para el manejo de imagenes
-    @Value("${image.upload.dir}")
+    @Value("")
     private String uploadDir;
 
+
     private Reclamo generarReclamoAbstract (Reclamo reclamo) {
-        Optional<Unidad> uni = UnidadDAO.getInstance().getById(reclamo.getUnidad().getId(), repositoryUnidad);
-        Optional<Persona> per = PersonaDAO.getInstance().getById(reclamo.getUsuario().getDocumento(), repositoryPersona);
+        Optional<Unidad> uni = repositoryUnidad.getById(reclamo.getUnidad().getId());
+        Optional<Persona> per = repositoryPersona.getById(reclamo.getUsuario().getDocumento());
         if (!uni.isPresent()) {
             throw new RuntimeException("La unidad no existe");
         }
@@ -60,7 +61,7 @@ public class ReclamoController {
         }
         else {
             reclamo.setUnidad(unidad); // Asegurarse de que la unidad esté gestionada por la sesión actual
-            ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
+            repositoryReclamo.save(reclamo);
             return reclamo;
     }
     }
@@ -81,14 +82,14 @@ public class ReclamoController {
 
     @PostMapping("/crearParteComun")
     public ResponseEntity<Integer> generarReclamoParteComun(@RequestBody Reclamo reclamo) {
-        Edificio edificio = EdificioDAO.getInstance().getById(reclamo.getEdificio().getCodigo(), repositoryEdificio).orElseThrow();
-        Persona persona = PersonaDAO.getInstance().getById(reclamo.getUsuario().getDocumento(), repositoryPersona).orElseThrow();
+        Edificio edificio = repositoryEdificio.getById(reclamo.getEdificio().getCodigo()).orElseThrow();
+        Persona persona = repositoryPersona.getById(reclamo.getUsuario().getDocumento()).orElseThrow();
         Set<Persona> habitantes = edificio.habitantes();
         // Verificar si la persona tiene alguna relación con el edificio (dueño o inquilino de alguna unidad)
         if (!habitantes.contains(persona)) {
             throw new RuntimeException("Solo las personas relacionadas con el edificio pueden hacer un reclamo de parte común.");
         } else {
-            ReclamoDAO.getInstance().save(reclamo, repositoryReclamo);
+            repositoryReclamo.save(reclamo);
             return ResponseEntity.ok(reclamo.getNumero()); // Retorna el ID del reclamo
         }
     }
@@ -96,20 +97,20 @@ public class ReclamoController {
     // recibimos el id como parametro en la url, para edificio y para unidad.
     @GetMapping("/edificio/{id}")
     public ResponseEntity<List<ReclamoView>> getReclamosPorEdificio (@PathVariable("id") int idEdificio){
-        List<Reclamo> reclamos = ReclamoDAO.getInstance().getByEdificio(idEdificio,repositoryReclamo);
+        List<Reclamo> reclamos = repositoryReclamo.getByEdificio(idEdificio);
         return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
     }
 
     @GetMapping("/unidad/{id}")
     public ResponseEntity<List<ReclamoView>> getReclamosPorUnidad (@PathVariable("id") int idUnidad){
-        List<Reclamo> reclamos = ReclamoDAO.getInstance().getByUnidad(idUnidad, repositoryReclamo);
+        List<Reclamo> reclamos = repositoryReclamo.getByUnidad(idUnidad);
         return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
     }
 
     /// reveer esto, no se si esta bien
     @GetMapping("/{id}")
     public ResponseEntity<ReclamoView> getReclamo(@PathVariable int id) {
-        Optional<Reclamo> reclamo = ReclamoDAO.getInstance().getById(id, repositoryReclamo);
+        Optional<Reclamo> reclamo = repositoryReclamo.getById(id);
         if (reclamo.isPresent()) {
             return ResponseEntity.ok(reclamo.get().toView());
         } else {
@@ -118,7 +119,7 @@ public class ReclamoController {
     }
     @GetMapping("/all")
     public ResponseEntity<List<ReclamoView>> getAllReclamos () {
-        List<Reclamo> reclamos = ReclamoDAO.getInstance().getAll(repositoryReclamo);
+        List<Reclamo> reclamos = repositoryReclamo.getAll();
         return ResponseEntity.ok(reclamos.stream().map(Reclamo::toView).toList());
     }
 
@@ -143,7 +144,7 @@ public class ReclamoController {
             imagen.setReclamo(reclamo); // Asocia la imagen con el reclamo
 
             // Guardar la imagen en la base de datos
-            ImagenDAO.getInstance().save(imagen, repositoryImagen);
+            repositoryImagen.save(imagen);
 
             // Añadir la imagen al reclamo
             reclamo.agregarImagen(imagen.getDireccion(), imagen.getTipo());
@@ -154,7 +155,7 @@ public class ReclamoController {
     }
     @PostMapping("/{id}/imagenes/cargar")
     public ResponseEntity<String> cargarImagenAReclamo(@PathVariable int id, @RequestParam("file") MultipartFile file) {
-        Optional<Reclamo> re = ReclamoDAO.getInstance().getById(id, repositoryReclamo);
+        Optional<Reclamo> re = repositoryReclamo.getById(id);
         if (!re.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reclamo no encontrado");
         } else {

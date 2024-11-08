@@ -1,6 +1,8 @@
 package administracion.tpo.modelo;
 
 import administracion.tpo.views.EdificioView;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class Edificio {
 	
 	private String direccion;
 	@OneToMany(mappedBy = "edificio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnoreProperties("edificio")
 	private List<Unidad> unidades=new ArrayList<Unidad>();
 
 	public Edificio(){

@@ -16,6 +16,7 @@ import administracion.tpo.views.EdificioView;
 import administracion.tpo.views.ReclamoView;
 import administracion.tpo.views.UnidadView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,56 +30,31 @@ public class EdificioController {
 	//la ruta es http://localhost:8080/api/edificios
 	
 	@Autowired
-	 IRepositoryEdificio repositoryEdificio;
+	 EdificioDAO repositoryEdificio;
 	@Autowired
-	IRepositoryUnidad repositoryUnidad;
+	UnidadDAO repositoryUnidad;
 	@Autowired
-	IRepositoryReclamo repositoryReclamo;
+	ReclamoDAO repositoryReclamo;
 	
 	@GetMapping
 	public List<Edificio> getAll() {
-		return EdificioDAO.getInstance().getAll(repositoryEdificio);
+		return repositoryEdificio.getAll();
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<EdificioView> getById(@PathVariable("id") int id) {
+	public ResponseEntity<Edificio> getById(@PathVariable("id") int id) {//cambiar view por el objeto Edificio
 		//la rta es http://localhost:8080/api/edificios/2
-		Optional<Edificio> e =EdificioDAO.getInstance().getById(id, repositoryEdificio);
+		Optional<Edificio> e =repositoryEdificio.getById(id);
 		if(e.isPresent()) {
 			Edificio ed=e.get();
-			return ResponseEntity.ok(ed.toView());
-		}else {
-			throw new RuntimeException("No existe el edificio con id: "+id);
-		}
-	}
-
-
-	@DeleteMapping("/{id}")
-	public ResponseEntity<String> deleteById(@PathVariable("id") int id) {
-		EdificioDAO.getInstance().delete(id,repositoryEdificio);
-		return ResponseEntity.ok("Edificio eliminado");
-	}
-	
-	@PostMapping("/crear")
-	public ResponseEntity<EdificioView> createProducto(@RequestBody EdificioView edi) {
-		Edificio edificio = new Edificio(edi.getNombre(), edi.getDireccion());
-		EdificioDAO.getInstance().save(edificio, repositoryEdificio);
-		return ResponseEntity.ok(edi);
-	}
-	@GetMapping("/{id}/unidades")
-	public ResponseEntity<List<UnidadView>> getUnidadesByEdificio (@PathVariable Integer id) {
-		Optional<Edificio> e = EdificioDAO.getInstance().getById(id, repositoryEdificio);
-		if(e.isPresent()) {
-			Edificio ed = e.get();
-			List<UnidadView> unidadesViews = UnidadDAO.getInstance().getByIdEdificio(ed.getCodigo(), repositoryUnidad).stream().map(Unidad::toView).toList();
-			return ResponseEntity.ok(unidadesViews);
+			return new ResponseEntity<>(ed, HttpStatus.OK);
 		}else {
 			throw new RuntimeException("No existe el edificio con id: "+id);
 		}
 	}
 	@GetMapping("/{id}/habitantes")
 	public ResponseEntity<List<Persona>> getHabitantesByEdificio (@PathVariable Integer id) {
-		Optional<Edificio> e = EdificioDAO.getInstance().getById(id, repositoryEdificio);
+		Optional<Edificio> e = repositoryEdificio.getById(id);
 		if(e.isPresent()) {
 			Edificio ed = e.get();
 			List<Persona> habitantes = ed.habitantes().stream().toList();
@@ -87,4 +63,50 @@ public class EdificioController {
 			throw new RuntimeException("No existe el edificio con id: "+id);
 		}
 	}
+
+	@GetMapping("/{id}/unidades")
+	public ResponseEntity<List<UnidadView>> getUnidadesByEdificio (@PathVariable Integer id) {
+		Optional<Edificio> e = repositoryEdificio.getById(id);
+		if(e.isPresent()) {
+			Edificio ed = e.get();
+			List<UnidadView> unidadesViews = repositoryUnidad.getByIdEdificio(ed.getCodigo()).stream().map(Unidad::toView).toList();
+			return ResponseEntity.ok(unidadesViews);
+		}else {
+			throw new RuntimeException("No existe el edificio con id: "+id);
+		}
+	}
+
+	@PostMapping("/crear")
+	public ResponseEntity<Edificio> crearEdificio(@RequestBody Edificio edi) {
+		repositoryEdificio.save(edi);
+		return new ResponseEntity<>(edi, HttpStatus.CREATED);
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<String> deleteById(@PathVariable("id") int id) {
+		repositoryEdificio.delete(id);
+		return ResponseEntity.ok("Edificio eliminado");
+	}
+	@PutMapping("/{id}/agregarunidad")
+	public ResponseEntity<Edificio> agregarUnidad(@PathVariable int id,@RequestParam int idUnidad) {
+
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@GetMapping("/{id}/habitantes")
+	public ResponseEntity<Edificio> habitantes(@PathVariable int id) {
+
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	@GetMapping("/{id}/duenios")
+	public ResponseEntity<Edificio> duenios(@PathVariable int id) {
+
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+
+
 }

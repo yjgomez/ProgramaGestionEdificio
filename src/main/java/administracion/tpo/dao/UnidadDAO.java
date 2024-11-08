@@ -7,58 +7,49 @@ import administracion.tpo.modelo.Unidad;
 import administracion.tpo.repository.IRepositoryReclamo;
 import administracion.tpo.repository.IRepositoryUnidad;
 import administracion.tpo.views.UnidadView;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class UnidadDAO {
-    private static UnidadDAO instance;
-
-
-
-    private UnidadDAO(){
-    }
-
-    public static UnidadDAO getInstance() {
-        if(instance==null){
-            instance = new UnidadDAO();
-        }
-        return instance;
-    }
-
-    public List<Unidad> getAll(IRepositoryUnidad iRepositoryUnidad){
+    @Autowired
+    IRepositoryUnidad iRepositoryUnidad;
+    public List<Unidad> getAll(){
         return iRepositoryUnidad.findAll();
     }
-    public Optional<Unidad> getById(int numero, IRepositoryUnidad iRepositoryUnidad){
+    public Optional<Unidad> getById(int numero){
         return iRepositoryUnidad.findById(numero);
     }
 
-    public void save(Unidad unidad, IRepositoryUnidad iRepositoryUnidad){
+    public void save(Unidad unidad ){
         iRepositoryUnidad.save(unidad);
     }
 
-    public void delete(UnidadView unidadView, IRepositoryUnidad iRepositoryUnidad) throws UnidadException {
-        Optional<Unidad> unidadOpt = getById(unidadView.getId(), iRepositoryUnidad);
+    public void delete(Unidad unidad) throws UnidadException {
+        Optional<Unidad> unidadOpt = getById(unidad.getId());
         if (unidadOpt.isPresent()) {
             iRepositoryUnidad.delete(unidadOpt.get());
         } else {
-            throw new UnidadException("Unidad no encontrada" + unidadView.getId());
+            throw new UnidadException("Unidad no encontrada" + unidad.getId());
         }
     }
-    public void deleteById (Integer id, IRepositoryUnidad iRepositoryUnidad) {
+    public void deleteById (Integer id) {
         iRepositoryUnidad.deleteById(id);
     }
     
-    public void update(Unidad unidad, IRepositoryUnidad iRepositoryUnidad){
+    public void update(Unidad unidad){
         if (iRepositoryUnidad.existsById(unidad.getId())) {
         	iRepositoryUnidad.save(unidad);
         }
     }
-    public List<Unidad> getByIdEdificio(int codigo, IRepositoryUnidad iRepositoryUnidad){
+    public List<Unidad> getByIdEdificio(int codigo){
         return iRepositoryUnidad.findByEdificio(codigo);
     }
 
-    public Unidad alquilar(Unidad unidad, IRepositoryUnidad iRepositoryUnidad, Persona persona) throws UnidadException {
+    public Unidad alquilar(Unidad unidad, Persona persona) throws UnidadException {
         if (unidad.estaHabitado()) {
             throw new UnidadException("La unidad ya esta habitada");
         } else {
@@ -67,25 +58,26 @@ public class UnidadDAO {
             return iRepositoryUnidad.save(unidad);
         }
     }
-    public Unidad transferir (Unidad unidad, Persona nuevoduenio, IRepositoryUnidad repositoryUnidad) {
+    public Unidad transferir (Unidad unidad, Persona nuevoduenio) {
         unidad.transferir(nuevoduenio);
-        repositoryUnidad.save(unidad);
+        iRepositoryUnidad.save(unidad);
         return unidad;
     }
      // un inquilino deja la unidad
-    public Unidad borrarInquilino (Unidad unidad, Persona persona, IRepositoryUnidad repositoryUnidad) {
+    public Unidad borrarInquilino (Unidad unidad, Persona persona) {
         if (unidad.getInquilinos().contains(persona)) {
             unidad.getInquilinos().remove(persona);
-            update(unidad, repositoryUnidad);
+            update(unidad);
             return unidad;
         } else throw new RuntimeException("El inquilino no vive en la unidad");
     }
 
     // solamente el duenio puede liberar la unidad
-    public Unidad liberarUnidad (Unidad unidad,  Persona persona, IRepositoryUnidad repositoryUnidad) {
+    public Unidad liberarUnidad (Unidad unidad,  Persona persona) {
         if (unidad.getDuenios().contains(persona)) {
             unidad.liberar();
-            update(unidad, repositoryUnidad);
+            update(unidad);
+            //update para guardar los datos
             return unidad;
         } else throw new RuntimeException("La persona que quiere liberar la unidad no es el duenio");
     }

@@ -4,36 +4,28 @@ import administracion.tpo.modelo.Edificio;
 import administracion.tpo.modelo.Persona;
 import administracion.tpo.repository.IRepositoryEdificio;
 import administracion.tpo.repository.IRepositoryPersona;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class EdificioDAO {
-    private static EdificioDAO instance;
-
-    private EdificioDAO(){
-
-    }
-
-    public static EdificioDAO getInstance() {
-        if(instance==null){
-            instance = new EdificioDAO();
-        }
-        return instance;
-    }
-
-    public List<Edificio> getAll(IRepositoryEdificio iRepositoryEdificio){
+    @Autowired
+    private IRepositoryEdificio iRepositoryEdificio;
+    public List<Edificio> getAll(){
         return iRepositoryEdificio.findAll();
     }
-    public Optional<Edificio> getById(int codigo, IRepositoryEdificio iRepositoryEdificio){
+    public Optional<Edificio> getById(int codigo){
         return iRepositoryEdificio.findById(codigo);
     }
 
-    public void save(Edificio edificio, IRepositoryEdificio iRepositoryEdificio){
+    public void save(Edificio edificio ){
         iRepositoryEdificio.save(edificio);
     }
 
-    public void delete(int codigo, IRepositoryEdificio iRepositoryEdificio){
+    public void delete(int codigo){
     	        if (iRepositoryEdificio.existsById(codigo)) {
         	iRepositoryEdificio.deleteById(codigo);
         } else {
@@ -41,7 +33,7 @@ public class EdificioDAO {
         }
     }
     
-    public void update(Edificio ed,IRepositoryEdificio iRepositoryEdificio){
+    public void update(Edificio ed){
         if (iRepositoryEdificio.existsById(ed.getCodigo())) {
         	iRepositoryEdificio.save(ed);
         }
