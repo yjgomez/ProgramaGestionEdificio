@@ -1,11 +1,14 @@
 package administracion.tpo.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
+import administracion.tpo.exceptions.EdificioException;
 import administracion.tpo.exceptions.UnidadException;
 import administracion.tpo.modelo.Persona;
 import administracion.tpo.modelo.Reclamo;
@@ -87,25 +90,39 @@ public class EdificioController {
 		repositoryEdificio.delete(id);
 		return ResponseEntity.ok("Edificio eliminado");
 	}
-	@PutMapping("/{id}/agregarunidad")
-	public ResponseEntity<Edificio> agregarUnidad(@PathVariable int id,@RequestParam int idUnidad) {
-
-
-		return new ResponseEntity<>(HttpStatus.OK);
+	
+	@PostMapping("/agregarunidad/{id}/")
+	public ResponseEntity<Edificio> agregarUnidad(@PathVariable int id,@RequestParam String piso,@RequestParam String numero) {
+		Optional<Edificio>e=repositoryEdificio.getById(id);
+		
+		Edificio e2=null;
+		
+		if(e.isPresent()) {
+			e2=e.get();
+			
+		}
+		Unidad u=new Unidad(piso,numero,e2);
+		
+		u.setEdificio(e2);
+		e2.agregarUnidad(u);
+		
+		repositoryUnidad.save(u);
+		repositoryEdificio.save(e2);
+		
+		return new ResponseEntity<Edificio>(HttpStatus.OK);
+		
+		
 	}
+		
+		
 
-	@GetMapping("/{id}/habitantes")
-	public ResponseEntity<Edificio> habitantes(@PathVariable int id) {
-
-
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
 	@GetMapping("/{id}/duenios")
-	public ResponseEntity<Edificio> duenios(@PathVariable int id) {
-
-
-		return new ResponseEntity<>(HttpStatus.OK);
+	public ResponseEntity<Set<Persona>> duenios(@PathVariable int id) {
+		Set<Persona>duenios=repositoryEdificio.duenios();
+		return new ResponseEntity<Set<Persona>>(duenios,HttpStatus.OK);
 	}
+	
+	
 
 
 

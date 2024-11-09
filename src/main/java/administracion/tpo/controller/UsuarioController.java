@@ -22,6 +22,7 @@ public class UsuarioController {
     @Autowired
     private IRepositoryUsuarioLogeado repositoryUsuarioLogeado;
 
+    /*
     @PostMapping("/crear")
     public ResponseEntity<PersonaView> createUser(@RequestBody Persona persona, @RequestBody UsuarioLogeado usuarioLogeado) {
 
@@ -53,4 +54,5 @@ public class UsuarioController {
         }
         return ResponseEntity.ok(user.toView());
     }
+    */
 }

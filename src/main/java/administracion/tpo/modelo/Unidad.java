@@ -26,7 +26,7 @@ public class Unidad {
 	private Edificio edificio;
 	*/
 	@ManyToOne
-    @JoinColumn(name = "edificio_id")
+    @JoinColumn(name = "codigoedificio")
 	@JsonBackReference("unidades")
     private Edificio edificio;
 	
@@ -143,4 +143,10 @@ public class Unidad {
 		return "Unidad [id=" + id + ", piso=" + piso + ", numero=" + numero + ", habitado=" + habitado + ", edificio="
 				+ edificio + "]";
 	}
+
+	public void setEdificio(Edificio edificio) {
+		this.edificio = edificio;
+	}
+	
+	
 }
