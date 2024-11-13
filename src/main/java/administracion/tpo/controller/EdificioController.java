@@ -81,6 +81,12 @@ public class EdificioController {
 
 	@PostMapping("/crear")
 	public ResponseEntity<Edificio> crearEdificio(@RequestBody Edificio edi) {
+		List<Edificio>edificios=repositoryEdificio.getAll();
+		for(Edificio e: edificios){
+			if(e.getNombre().equals(edi.getNombre()) || e.getDireccion().equals(edi.getDireccion())) {
+				return new ResponseEntity<>(HttpStatus.IM_USED);
+			}
+		}
 		repositoryEdificio.save(edi);
 		return new ResponseEntity<>(edi, HttpStatus.CREATED);
 	}
@@ -91,10 +97,9 @@ public class EdificioController {
 		return ResponseEntity.ok("Edificio eliminado");
 	}
 	
-	@PostMapping("/agregarunidad/{id}/")
+	@PostMapping("/agregarunidad/{id}/") //este Metodo no se usa
 	public ResponseEntity<Edificio> agregarUnidad(@PathVariable int id,@RequestParam String piso,@RequestParam String numero) {
 		Optional<Edificio>e=repositoryEdificio.getById(id);
-		
 		Edificio e2=null;
 		
 		if(e.isPresent()) {
@@ -102,16 +107,11 @@ public class EdificioController {
 			
 		}
 		Unidad u=new Unidad(piso,numero,e2);
-		
 		u.setEdificio(e2);
 		e2.agregarUnidad(u);
-		
 		repositoryUnidad.save(u);
 		repositoryEdificio.save(e2);
-		
 		return new ResponseEntity<Edificio>(HttpStatus.OK);
-		
-		
 	}
 		
 		
@@ -121,8 +121,14 @@ public class EdificioController {
 		Set<Persona>duenios=repositoryEdificio.duenios();
 		return new ResponseEntity<Set<Persona>>(duenios,HttpStatus.OK);
 	}
-	
-	
+
+	@GetMapping("/{id}/habilitados")
+	//agregar metodo de habilitados o algo asi
+	public ResponseEntity<Set<Persona>> habilitados(@PathVariable int id) {
+		Set<Persona>habilitados=repositoryEdificio.habilitados(id);
+		return new ResponseEntity<Set<Persona>>(habilitados,HttpStatus.OK);
+	}
+
 
 
 

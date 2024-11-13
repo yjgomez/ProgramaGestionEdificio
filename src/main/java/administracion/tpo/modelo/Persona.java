@@ -9,6 +9,7 @@ public class Persona {
 
 	@Id
 	//@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(unique=true)
 	private String documento;
 	@Column(name = "nombre")
 	private String nombre;

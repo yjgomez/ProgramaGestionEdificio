@@ -121,11 +121,18 @@ public class UnidadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
     @PutMapping("/{id}/liberarUnidad")
-    public ResponseEntity<String> liberarUnidad (@PathVariable int id, @RequestBody Persona persona) throws UnidadException {
+    public ResponseEntity<String> liberarUnidad (@PathVariable int id, @RequestParam String dni) throws UnidadException {
         Optional<Unidad> uOpt = repositoriounidad.getById(id);
+
+        Optional<Persona>persona=repopersona.getById(dni);
+        Persona persona1=null;
+        if(persona.isPresent()) {
+            persona1=persona.get();
+        }
+
         if(uOpt.isPresent()) {
             Unidad unidad = uOpt.get();
-            repositoriounidad.liberarUnidad(unidad,persona);
+            repositoriounidad.liberarUnidad(unidad,persona1);
             return new ResponseEntity<>("unidad liberada",HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -140,6 +147,36 @@ public class UnidadController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
+    /*
+    public ResponseEntity<List<Persona>> getInquilinos () {
+        List<Unidad> uOpt = repositoriounidad.getAll();
+        List<Persona>personas=new ArrayList<>();
+        for(Unidad u: uOpt){
+            for(Persona p: u.getInquilinos()){
+                personas.add(p);
+            }
+        }
+        return new ResponseEntity<>(personas, HttpStatus.OK);
+
+
+
+
+    }
+     */
+
+    @PutMapping("/{id}/agregarduenio")
+    public ResponseEntity<String> agregarduenio (@PathVariable int id, @RequestBody Persona persona) throws UnidadException {
+        Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        if(uOpt.isPresent()) {
+            Unidad unidad = uOpt.get();
+            unidad.agregarDuenio(persona);
+            repositoriounidad.save(unidad);
+            return new ResponseEntity<>("Dueño añadido", HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
 
 
 }

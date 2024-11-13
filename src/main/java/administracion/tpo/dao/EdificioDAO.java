@@ -64,4 +64,26 @@ public class EdificioDAO {
 		return resultado;
 	}
 
+
+    public Set<Persona> habilitados(int id){
+        Set<Persona> habilitados = new HashSet<Persona>();
+        Optional<Edificio> edificio=iRepositoryEdificio.findById(id);
+        Edificio edificio1=null;
+
+        if(edificio.isPresent()){
+            edificio1=edificio.get();
+        }
+
+
+        for(Unidad uni : edificio1.getUnidades()) {
+            List<Persona> duenios = uni.getDuenios();
+            for(Persona p : duenios)
+                habilitados.add(p);
+            List<Persona> inquilinos = uni.getInquilinos();
+            for(Persona p : inquilinos)
+                habilitados.add(p);
+        }
+        return habilitados;
+    }
+
 }

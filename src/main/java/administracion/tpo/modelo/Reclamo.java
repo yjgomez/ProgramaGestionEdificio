@@ -1,85 +1,76 @@
 package administracion.tpo.modelo;
+import administracion.tpo.modelo.*;
+import administracion.tpo.views.ReclamoView;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import administracion.tpo.views.ReclamoView;
-import jakarta.persistence.*;
-
 @Entity
 @Table(name="reclamos")
 public class Reclamo {
-	
+
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int idreclamo;
 
 	@ManyToOne
 	@JoinColumn(name = "documento")
+	@JsonIgnore
 	private Persona usuario;
-	
+
 	@ManyToOne
-	@JoinColumn(name="codigo")
+	@JoinColumn(name = "codigo")
+	//@JsonIgnoreProperties("reclamo")
+	@JsonIgnore
 	private Edificio edificio;
-	
+
 	private String ubicacion;
 
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "identificador")
+	@JsonIgnore
 	private Unidad unidad;
-	
+
 	private String descripcion;
-	
-	
+
+
 	//@Column(name="identificador")
 	@Enumerated(EnumType.STRING)
 	private Estado estado;
-	
-	
+
+
 	@Column(name = "imagen")
 	@OneToMany(mappedBy = "reclamo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnoreProperties("reclamo")
 	private List<Imagen> imagenes = new ArrayList<>();
-	
+
 	//fijarse si realmente sirve. Sino, sacarlo
 	private int idtiporeclamo;
-	
+
 	public void setUsuario(Persona usuario) {
 		this.usuario = usuario;
 	}
-	
-	
-	public Reclamo(){
+
+
+	public Reclamo() {
 
 	}
-	
-	
-	public Reclamo(Persona usuario, Edificio edificio, String ubicacion, String descripcion, Unidad unidad,int idtiporeclamo) {
+
+	public Reclamo(Persona usuario, Edificio edificio, String ubicacion, String descripcion, Unidad unidad, int idtiporeclamo) {
 		this.usuario = usuario;
 		this.edificio = edificio;
 		this.ubicacion = ubicacion;
 		this.descripcion = descripcion;
 		this.unidad = unidad;
 		this.estado = Estado.nuevo;
-		this.idtiporeclamo=idtiporeclamo;
+		this.idtiporeclamo = idtiporeclamo;
 		imagenes = new ArrayList<>();
 	}
 
-	// para cargar reclamos comunes del edificio, sin especificar unidad
-	public Reclamo(Persona usuario, Edificio edificio, String ubicacion, String descripcion,int idtiporeclamo) {
-		this.usuario = usuario;
-		this.edificio = edificio;
-		this.ubicacion = ubicacion;
-		this.descripcion = descripcion;
-		this.estado = Estado.nuevo;
-		this.idtiporeclamo=idtiporeclamo;
-		imagenes = new ArrayList<>();
-	}
-	public void agregarImagen(String direccion, String tipo) {
-		Imagen imagen = new Imagen(direccion, tipo);
-		imagenes.add(imagen);
-		imagen.setReclamo(this);
-	}
-	
+
 	public int getNumero() {
 		return idreclamo;
 	}
@@ -111,11 +102,15 @@ public class Reclamo {
 	public Estado getEstado() {
 		return estado;
 	}
-	
-	public List<Imagen> getImagenes(){
+
+	public List<Imagen> getImagenes() {
 		return this.imagenes;
 	}
-	
+
+	public void addImagenes(Imagen imagen) {
+		this.imagenes.add(imagen);
+	}
+
 	public void cambiarEstado(Estado estado) {
 		this.estado = estado;
 	}
@@ -125,11 +120,11 @@ public class Reclamo {
 	}
 
 	public void save() {
-		
+
 	}
-	
+
 	public void update() {
-		
+
 	}
 
 	@Override
@@ -145,12 +140,9 @@ public class Reclamo {
 	}
 
 
+	//fijarse si debería poder actualizar algo del reclamo
 	public void setIdtiporeclamo(int idtiporeclamo) {
 		this.idtiporeclamo = idtiporeclamo;
 	}
 
-	public ReclamoView toView() {
-		return new ReclamoView(idreclamo, usuario.toView(), edificio.toView(), ubicacion, descripcion, unidad.toView(), estado, imagenes.stream().map(Imagen::toView).toList());
-	}
-	
 }

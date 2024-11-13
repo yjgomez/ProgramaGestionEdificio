@@ -25,7 +25,8 @@ public class Edificio {
 	
 	private String direccion;
 	@OneToMany(mappedBy = "edificio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	@JsonIgnoreProperties("edificio")
+	//@JsonIgnoreProperties("edificio")
+	@JsonIgnore
 	private List<Unidad> unidades=new ArrayList<Unidad>();
 
 	public Edificio(){

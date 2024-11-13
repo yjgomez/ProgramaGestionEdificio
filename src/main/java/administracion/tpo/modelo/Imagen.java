@@ -1,6 +1,7 @@
 package administracion.tpo.modelo;
 
 import administracion.tpo.views.ImagenView;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -16,6 +17,7 @@ public class Imagen {
 	private String tipo;
 	@ManyToOne
 	@JoinColumn(name = "idreclamo")
+	@JsonIgnoreProperties({"unidad","edificio"})
 	private Reclamo reclamo;
 
 

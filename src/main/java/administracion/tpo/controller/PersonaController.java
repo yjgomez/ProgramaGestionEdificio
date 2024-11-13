@@ -39,6 +39,14 @@ public class PersonaController {
 
     @PostMapping("/guardarpersona")
     public ResponseEntity<Persona>guardarpersonas(@RequestBody Persona persona){
+        List<Persona>personas=personaDAO.getAll();
+
+        for(Persona p:personas){
+            if(p.getDocumento().equals(persona.getDocumento())){
+                return new ResponseEntity<>(persona,HttpStatus.CONFLICT);
+            }
+        }
+
         personaDAO.save(persona);
         return new ResponseEntity<>(persona,HttpStatus.CREATED);
     }
