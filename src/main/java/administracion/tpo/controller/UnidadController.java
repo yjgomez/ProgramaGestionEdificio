@@ -5,6 +5,7 @@ import administracion.tpo.dao.PersonaDAO;
 import administracion.tpo.dao.ReclamoDAO;
 import administracion.tpo.dao.UnidadDAO;
 import administracion.tpo.exceptions.UnidadException;
+import administracion.tpo.modelo.Edificio;
 import administracion.tpo.modelo.Persona;
 import administracion.tpo.modelo.Unidad;
 import administracion.tpo.repository.IRepositoryEdificio;
@@ -69,9 +70,32 @@ public class UnidadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+    /*
     @PostMapping("/crear") // se le envia por parametro a la url el id del edificio
     public ResponseEntity<Unidad> crearUnidad(@RequestBody Unidad unidad) {
         repositoriounidad.save(unidad);
+        return new ResponseEntity<>(unidad, HttpStatus.CREATED);
+    }
+
+     */
+
+    //SE CREA UNA UNIDAD Y SE LE ASIGNA A UN EDIFICIO DIRECTAMENTE
+    @PostMapping("/crear/{ideficio}") // se le envia por parametro a la url el id del edificio
+    public ResponseEntity<Unidad> crearUnidad(@RequestBody Unidad unidad, @PathVariable int ideficio) {
+        Optional<Edificio>e=repositoryEdificio.getById(ideficio);
+        Edificio e2=null;
+
+        if(e.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        }
+        e2=e.get();
+
+        unidad.setEdificio(e2);
+
+        repositoryEdificio.save(e2);
+        repositoriounidad.save(unidad);
+
         return new ResponseEntity<>(unidad, HttpStatus.CREATED);
     }
 
@@ -103,9 +127,18 @@ public class UnidadController {
     @PutMapping("/{id}/transferir")
     public ResponseEntity<Unidad> transferir (@PathVariable int id, @RequestBody Persona persona) throws UnidadException {
         Optional<Unidad> uOpt = repositoriounidad.getById(id);
+        
+        Optional<Persona> p=repopersona.getById(persona.getDocumento());
+        Persona p2=null;
+        if(p.isPresent()){
+            p2=p.get();
+        } else{
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         if(uOpt.isPresent()) {
             Unidad unidad = uOpt.get();
-            repositoriounidad.transferir(unidad, persona);
+            repositoriounidad.transferir(unidad, p2);
             return new ResponseEntity<>(unidad, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

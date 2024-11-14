@@ -97,21 +97,32 @@ public class EdificioController {
 		return ResponseEntity.ok("Edificio eliminado");
 	}
 	
-	@PostMapping("/agregarunidad/{id}/") //este Metodo no se usa
-	public ResponseEntity<Edificio> agregarUnidad(@PathVariable int id,@RequestParam String piso,@RequestParam String numero) {
+	@PutMapping ("/agregarunidad/{id}/{numerounidad}") //este metodo sirve para asignar una unidad a un edificio
+	public ResponseEntity<Edificio> agregarUnidad(@PathVariable int id,@PathVariable int numerounidad) {
 		Optional<Edificio>e=repositoryEdificio.getById(id);
 		Edificio e2=null;
 		
-		if(e.isPresent()) {
-			e2=e.get();
-			
+		if(e.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
 		}
-		Unidad u=new Unidad(piso,numero,e2);
-		u.setEdificio(e2);
-		e2.agregarUnidad(u);
-		repositoryUnidad.save(u);
+		e2=e.get();
+
+		Optional<Unidad>u=repositoryUnidad.getById(numerounidad);
+		Unidad u2=null;
+
+		if(u.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+		}
+		u2=u.get();
+
+		e2.agregarUnidad(u2);
+
+		u2.setEdificio(e2);
 		repositoryEdificio.save(e2);
-		return new ResponseEntity<Edificio>(HttpStatus.OK);
+		repositoryUnidad.save(u2);
+		return new ResponseEntity<>(e2,HttpStatus.OK);
 	}
 		
 		
