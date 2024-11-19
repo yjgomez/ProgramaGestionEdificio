@@ -12,6 +12,7 @@ import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "*")  // Permite solicitudes de cualquier origen
 @RestController
 @RequestMapping("/api/personas")
 public class PersonaController {

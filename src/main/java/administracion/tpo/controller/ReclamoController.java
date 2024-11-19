@@ -3,6 +3,7 @@ package administracion.tpo.controller;
 import administracion.tpo.dao.*;
 import administracion.tpo.modelo.*;
 import administracion.tpo.repository.*;
+import administracion.tpo.views.CrearReclamo;
 import administracion.tpo.views.ReclamoView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.Id;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+@CrossOrigin(origins = "*")  // Permite solicitudes de cualquier origen
 @RestController
 @RequestMapping("/api/reclamos")
 public class ReclamoController {
@@ -82,6 +84,51 @@ public class ReclamoController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null); // Error 403, no se guarda el reclamo
         }
     }
+    
+    //metodo duplicado para crear reclamo recibiendo todo como un json!!
+    //sino desde el front es un quilombo mandar data
+    
+    @PostMapping("generareclamojson")
+    public ResponseEntity<Integer> generarReclamo(@RequestBody CrearReclamo datareclamo) {
+    	System.out.println("en generar reclamo json");
+        Optional<Persona> personaobtener = repositoryPersona.getById(datareclamo.getPersona());
+        Persona personafinal = null;
+        if (personaobtener.isPresent()) {
+            personafinal = personaobtener.get();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Persona no encontrada
+        }
+
+        Optional<Unidad> unidadobtener = repositoryUnidad.getById(datareclamo.getUnidad());
+        Unidad unidadfinal = null;
+        if (unidadobtener.isPresent()) {
+            unidadfinal = unidadobtener.get();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Unidad no encontrada
+        }
+
+        Optional<Edificio> edificioobtener = repositoryEdificio.getById(datareclamo.getEdificio());
+        Edificio edificiofinal = null;
+        if (edificioobtener.isPresent()) {
+            edificiofinal = edificioobtener.get();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Edificio no encontrado
+        }
+
+
+        if (unidadfinal.esInquilino(personafinal) ) {
+            Reclamo reclamo = new Reclamo(personafinal, edificiofinal, edificiofinal.getDireccion(), datareclamo.getDescripcion(), unidadfinal, datareclamo.getTiporeclamo());
+            repositoryReclamo.save(reclamo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(reclamo.getNumero()); // Reclamo creado exitosamente
+        } else if (unidadfinal.esDuenio(personafinal) && !unidadfinal.estaHabitado()) {
+            Reclamo reclamo = new Reclamo(personafinal, edificiofinal, edificiofinal.getDireccion(), datareclamo.getDescripcion(), unidadfinal, datareclamo.getTiporeclamo());
+            repositoryReclamo.save(reclamo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(reclamo.getNumero()); // Reclamo creado exitosamente
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null); // Error 403, no se guarda el reclamo
+        }
+    }
+
 
     @PutMapping("/agregarimagen/{idreclamo}")
     public ResponseEntity<List<Imagen>> agregarImagen(@PathVariable int idreclamo, @RequestBody Imagen imagen) {

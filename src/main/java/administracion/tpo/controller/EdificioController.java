@@ -27,6 +27,7 @@ import administracion.tpo.dao.EdificioDAO;
 import administracion.tpo.modelo.Edificio;
 import administracion.tpo.repository.IRepositoryEdificio;
 
+@CrossOrigin(origins = "*")  // Permite solicitudes de cualquier origen
 @RestController
 @RequestMapping("/api/edificios")
 public class EdificioController {

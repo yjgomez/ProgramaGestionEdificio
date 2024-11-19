@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*")  // Permite solicitudes de cualquier origen
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {

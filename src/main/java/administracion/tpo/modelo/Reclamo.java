@@ -145,4 +145,10 @@ public class Reclamo {
 		this.idtiporeclamo = idtiporeclamo;
 	}
 
+
+	public void agregarImagen(String direccion, String tipo) {
+		System.out.println("este metodo NO existia");
+		
+	}
+
 }

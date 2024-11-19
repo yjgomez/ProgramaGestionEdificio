@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "*")  // Permite solicitudes de cualquier origen
 @RestController
 @RequestMapping("api/unidades")
 public class UnidadController {
