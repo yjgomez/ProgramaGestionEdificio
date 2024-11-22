@@ -19,6 +19,22 @@ public class PersonaController {
 
     @Autowired
     private PersonaDAO personaDAO;
+    
+  //recibe esto http://localhost:8080/api/personas/login/DNI 89231201/Jorge y devuelve true o false
+    
+  //login, devuelve true o false
+      @GetMapping("/login/{documento}/{nombre}")
+      public boolean login(@PathVariable String documento,@PathVariable String nombre){
+          Optional<Persona> persona = personaDAO.getById(documento);
+          if(persona.isPresent()) {
+          Persona esta=persona.get();
+          if(esta.getNombre().equalsIgnoreCase(nombre)) {
+          return true;
+          }
+          }
+       
+          return false;
+      }
 
 
     @GetMapping("/obtenerpersonas")
